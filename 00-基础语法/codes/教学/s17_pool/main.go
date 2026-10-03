@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"sync"
-	"time"
 )
 
 // student 是临时对象，可以用 sync.Pool 复用
@@ -56,25 +55,13 @@ func main() {
 
 	fmt.Println("\n=== 池不是连接池 ===")
 	fmt.Println("sync.Pool 只能存临时对象，不能存 socket 长连接、数据库连接池。")
-	fmt.Println("原因：GC 会随时清空 pool（每轮 GC 都会），不能依赖它做连接复用。")
+	fmt.Println("原因：Go 1.13 起 Pool 采用 victim cache —— GC 开始时把主缓存挪入 victim 区，")
+	fmt.Println("      上一轮的 victim 才真正丢弃，所以对象最多两个 GC 周期内被回收。")
+	fmt.Println("      池不保证对象长期可用，因此不能当连接池用。")
 
 	fmt.Println("\n=== 性能对比 ===")
-	const n = 100000
-
-	// 每次都 new
-	start := time.Now()
-	for i := 0; i < n; i++ {
-		s := &student{Name: "Tom", Age: 30}
-		_ = s
-	}
-	fmt.Printf("每次 new：      %v\n", time.Since(start))
-
-	// 用 Pool 复用
-	start = time.Now()
-	for i := 0; i < n; i++ {
-		s := New("Tom", 30)
-		Release(s)
-	}
-	fmt.Printf("Pool 复用：     %v\n", time.Since(start))
-	fmt.Println("（Pool 的收益主要在减少 GC 压力，需配合 -benchmem 看 allocs/op）")
+	fmt.Println("微基准不要用 time.Now() 手写：短代码可能被编译器优化掉，也没有 allocs/op 统计。")
+	fmt.Println("正确做法见 pool_test.go：")
+	fmt.Println("  go test -bench . -benchmem ./s17_pool")
+	fmt.Println("（Pool 的收益主要在减少 GC 压力，要看 allocs/op 而不是 ns/op）")
 }

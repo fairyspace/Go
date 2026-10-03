@@ -1,1 +1,26 @@
-.idea
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 编译产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# 覆盖率与性能分析产物
+coverage.out
+*.prof
+cpu.out
+mem.out
+
+# 依赖目录（除非明确需要 vendor）
+vendor/
+
+# 系统文件
+.DS_Store
+Thumbs.db

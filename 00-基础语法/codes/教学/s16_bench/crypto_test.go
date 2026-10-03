@@ -4,8 +4,6 @@
 package bench
 
 import (
-	"bytes"
-	"fmt"
 	"testing"
 )
 
@@ -137,6 +135,3 @@ func TestJWTRoundTrip(t *testing.T) {
 		t.Error("被篡改的 token 应验证失败")
 	}
 }
-
-var _ = fmt.Sprintf
-var _ = bytes.NewBuffer
