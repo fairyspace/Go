@@ -22,10 +22,18 @@ func main() {
 	fmt.Println("\n=== 声明 chan ===")
 	ch1 := make(chan string)     // 不带缓冲
 	ch2 := make(chan string, 10) // 带 10 个缓冲
-	ch3 := make(<-chan string)   // 只读通道
-	ch4 := make(chan<- string)   // 只写通道
 	fmt.Println(len(ch1), cap(ch1), len(ch2), cap(ch2))
-	fmt.Printf("只读通道 %T，只写通道 %T\n", ch3, ch4)
+
+	// 方向化通道：创建时永远用双向，方向约束写在「函数签名」上。
+	// 反例（勿模仿）：make(<-chan string) 得到的通道永远无法写入，
+	// 对它取值必然永久阻塞；make(chan<- string) 则永远无法读取。
+	// 正确做法见下方 producer / consumer 的签名，以及 workerPool()。
+	var (
+		recvOnly <-chan string = ch2 // 只读视图（由双向通道转换而来）
+		sendOnly chan<- string = ch2 // 只写视图
+	)
+	fmt.Printf("只读通道 %T，只写通道 %T\n", recvOnly, sendOnly)
+	fmt.Println("方向是给使用者的约束：func producer(out chan<- string) / func consumer(in <-chan string)")
 
 	// ==================== 写入 / 读取 / 关闭 ====================
 	fmt.Println("\n=== 写入读取关闭 ===")

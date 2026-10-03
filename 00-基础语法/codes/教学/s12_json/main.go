@@ -23,7 +23,10 @@ type MobileInfo struct {
 	} `json:"result"`
 }
 
-// 情况三：字段不固定，用 squash 嵌入
+// 情况三：字段不固定 —— 用匿名内嵌实现「摊平」
+//
+// 注意：encoding/json 对匿名内嵌字段默认就是摊平的，既不需要也不认识 `,squash`
+// （`,squash` 是 github.com/mitchellh/mapstructure 的选项，写在 json tag 上无效）。
 type Family struct {
 	LastName string
 }
@@ -33,8 +36,8 @@ type Location struct {
 }
 
 type Person struct {
-	Family    `json:",squash"`
-	Location  `json:",squash"`
+	Family          // JSON 中 LastName 是顶层字段
+	Location        // JSON 中 City 是顶层字段
 	FirstName string
 }
 
@@ -158,18 +161,28 @@ func pitfallSolution2() {
 	}
 	fmt.Println("结构体接收：", result) // {1234567}
 
-	// 大整数精度丢失演示：雪花 ID
+	// 边界演示：float64 能精确表示的整数上限是 2^53 = 9007199254740992
 	type ID struct {
 		ID int64 `json:"id"`
 	}
-	snowflake := `{"id":1759482245000000}`
-	var i ID
-	_ = json.Unmarshal([]byte(snowflake), &i)
-	fmt.Println("结构体接收雪花 ID：", i.ID) // 1759482245000000 正确
 
-	var m map[string]interface{}
-	_ = json.Unmarshal([]byte(snowflake), &m)
-	fmt.Println("map 接收雪花 ID：", m["id"]) // 1.759482245e+15 精度已丢失
+	// 情况 A：1759482245000000 < 2^53 → float64 可精确表示。
+	//         %v 显示成 1.759482245e+15 只是「格式化方式」，值并没有丢。
+	const displayOnly = `{"id":1759482245000000}`
+	// 情况 B：19 位雪花 ID > 2^53 → 精度真的丢失
+	const precisionLost = `{"id":7300000000000000001}`
+
+	for _, s := range []string{displayOnly, precisionLost} {
+		var byStruct ID
+		_ = json.Unmarshal([]byte(s), &byStruct)
+
+		var byMap map[string]interface{}
+		_ = json.Unmarshal([]byte(s), &byMap)
+
+		fmt.Printf("原始=%s\n  struct 接收:    %d\n  map 接收:      %v (float64)\n  map 转 int64:  %d\n",
+			s, byStruct.ID, byMap["id"], int64(byMap["id"].(float64)))
+	}
+	fmt.Println("结论：绝对值 > 9007199254740992 (2^53) 才会真正丢精度；否则只是科学计数法的显示问题")
 }
 
 // ============ 小坑 1：方案三 UseNumber ============

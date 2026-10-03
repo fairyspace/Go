@@ -60,13 +60,16 @@ func toJson(res *Result) {
 
 func main() {
 	// ==================== 声明结构体 ====================
-	var p1 Person // 取零值
+	// 零值演示：未赋值的字段取各自零值（要在赋值之前打印才看得到）
+	fmt.Printf("零值结构体：%+v\n", Person{}) // {Name: Age:0}
+
+	var p1 Person // 声明即取零值
 	p1.Name = "Tom"
 	p1.Age = 30
-	fmt.Println("p1 =", p1)
+	fmt.Println("p1 =", p1) // {Tom 30}
 
-	p2 := Person{Name: "Burke", Age: 31}
-	p3 := Person{Name: "Aaron", Age: 32} // 忽略 Age
+	p2 := Person{Name: "Burke", Age: 31} // 字段名初始化
+	p3 := Person{Name: "Aaron"}          // 部分初始化：未写的字段取零值（Age = 0）
 	fmt.Println("p2 =", p2, "p3 =", p3)
 
 	// 匿名结构体：常用于临时数据、测试用例

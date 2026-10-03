@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // MD5 方法
@@ -37,14 +38,18 @@ func createSign(params map[string]interface{}, secret string) string {
 	sort.Strings(key)
 
 	// 3. 拼接字符串
-	var str = ""
-	for i := 0; i < len(key); i++ {
-		if i == 0 {
-			str = fmt.Sprintf("%v=%v", key[i], params[key[i]])
-		} else {
-			str = str + fmt.Sprintf("&xl_%v=%v", key[i], params[key[i]])
+	//    用 strings.Builder：循环里用 + 累加是 O(n²)（每轮分配新串并复制已有内容），
+	//    编译器不会帮你改写成 Builder。
+	//    统一规则 k=v&k=v（原教程的 "xl_" 前缀是某些开放平台的历史约定，此处不保留）。
+	var sb strings.Builder
+	sb.Grow(len(key) * 16) // 预分配，避免多次扩容
+	for i, k := range key {
+		if i > 0 {
+			sb.WriteByte('&')
 		}
+		fmt.Fprintf(&sb, "%s=%v", k, params[k])
 	}
+	str := sb.String()
 
 	// 4. 双重 MD5
 	return MD5(MD5(str) + MD5(secret))
