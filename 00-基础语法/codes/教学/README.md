@@ -46,20 +46,20 @@ go run -race ./s15_syncmap                # 竞态检测
 | `s04_slice/` | 03 二 | 声明、截取、三索引切片、append 扩容、三种删除 | `go run` |
 | `s05_struct/` | 04 一 | 命名/匿名结构体、嵌套、接收者、JSON tag | `go run` |
 | `s06_map/` | 03 三 | 六种声明、nil map 陷阱、编辑删除、有序遍历 | `go run` |
-| `s07_loop/` | 05 | 三种容器遍历、break/continue/goto/switch | `go run` |
-| `s08_func/` | 06 一~三 | 传值传指针、命名返回值、错误处理、不定参数、闭包 | `go run` |
-| `s08_sign/` | 06 四 | MD5 + 生成签名（`strings.Builder` 拼接） | `go run` |
-| `s08_defer/` | 06 四 | defer 经典题 + 五个坑 + 资源释放 | `go run` |
-| `s09_interface/` | 07 一 | 隐式实现、编译期断言、接口组合、类型断言 | `go run` |
-| `s10_option/` | 07 二 | Options 模式、结构体参数对比、**sync.Pool 反例**（见下） | `go run` |
-| `s11_timeutil/` | 10 一二 | RFC3339 转 CST、time 常用操作、定时器 | `go run` |
+| `s07_loop/` | 05 Part A | 三种容器遍历、break/continue/goto/switch | `go run` |
+| `s08_func/` | 05 Part B 一~三 | 传值传指针、命名返回值、错误处理、不定参数、闭包 | `go run` |
+| `s08_sign/` | 05 Part B 四 | MD5 + 生成签名（`strings.Builder` 拼接） | `go run` |
+| `s08_defer/` | 05 Part B 四 | defer 经典题 + 五个坑 + 资源释放 | `go run` |
+| `s09_interface/` | 06 一 | 隐式实现、编译期断言、接口组合、类型断言 | `go run` |
+| `s10_option/` | 06 二 | Options 模式、结构体参数对比、**sync.Pool 反例**（见下） | `go run` |
+| `s11_timeutil/` | 09 一二 | RFC3339 转 CST、time 常用操作、定时器 | `go run` |
 | `s12_json/` | 04 三四 | 强类型/弱类型/匿名内嵌摊平、科学计数法与 2^53 精度边界 | `go run` |
-| `s13_chan/` | 08 一 | channel 阻塞、close 规则、方向化、select、Worker Pool | `go run` |
-| `s14_waitgroup/` | 08 二 | 正确用法、三个坑、context 取消、并发收集结果 | `go run` |
-| `s15_syncmap/` | 08 三 | Store/Load/Range、六个方法、RWMutex 对比、-race | `go run` |
-| `s16_bench/` | 09 一二 | MD5/AES/JWT 基准、字符串三写法、map vs struct | **`go test`** |
-| `s17_escape/` | 09 三 | interface 字段/返回指针/大对象三种逃逸 | `go run` |
-| `s17_pool/` | 09 四 | sync.Pool 复用临时对象、reset 必要性、基准对比 | `go run` + `go test` |
+| `s13_chan/` | 07 一 | channel 阻塞、close 规则、方向化、select、Worker Pool | `go run` |
+| `s14_waitgroup/` | 07 二 | 正确用法、三个坑、context 取消、并发收集结果 | `go run` |
+| `s15_syncmap/` | 07 三 | Store/Load/Range、六个方法、RWMutex 对比、-race | `go run` |
+| `s16_bench/` | 08 一二 | MD5/AES/JWT 基准、字符串三写法、map vs struct | **`go test`** |
+| `s17_escape/` | 08 三 | interface 字段/返回指针/大对象三种逃逸 | `go run` |
+| `s17_pool/` | 08 四 | sync.Pool 复用临时对象、reset 必要性、基准对比 | `go run` + `go test` |
 
 ## 本次审阅修正的代码缺陷
 

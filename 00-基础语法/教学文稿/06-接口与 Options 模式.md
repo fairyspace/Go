@@ -1,4 +1,4 @@
-# 07 接口与 Options 模式
+# 06 接口与 Options 模式
 
 > 学完本篇你将能够：用隐式实现定义接口、用编译期断言保证实现完整、用 Options 模式写出可扩展的链式配置 API、看懂 `grpc.Dial` 的源码写法、知道何时不该用 Options 模式。
 
@@ -198,7 +198,7 @@ if s, ok := v.(string); ok {
 }
 ```
 
-> ⚠️ **空接口 `interface{}` 会导致逃逸和性能下降**（见第 09 篇），且丧失编译期类型检查。字段类型确定时**务必用具体类型**。
+> ⚠️ **空接口 `interface{}` 会导致逃逸和性能下降**（见第 08 篇），且丧失编译期类型检查。字段类型确定时**务必用具体类型**。
 >
 > 这也是为什么 `json.Unmarshal` 到 `map[string]interface{}` 会让所有数字变成 `float64`（第 04 篇）——因为 `interface{}` 只能存这几种基础类型。
 
@@ -300,7 +300,7 @@ friends, err := friend.Find("附近的人",
 > - 每次 `WithSex(1)` 仍会为返回的**闭包**分配一次（闭包捕获了参数），这是池化省不掉的；
 > - 净收益接近 0，代价却真实存在：必须维护 `reset()`，**漏一个字段就是脏数据串号**（上一个请求的 hobby 泄漏给下一个请求）。
 >
-> 正确做法见本节末尾的「对照实验」。`sync.Pool` 的正确使用场景是**分配代价高的对象**（`bytes.Buffer`、大 `[]byte`、编解码器），详见第 09 篇四。
+> 正确做法见本节末尾的「对照实验」。`sync.Pool` 的正确使用场景是**分配代价高的对象**（`bytes.Buffer`、大 `[]byte`、编解码器），详见第 08 篇四。
 
 ```go
 // s10_option/friend/option.go
@@ -478,9 +478,9 @@ func main() {
 |---|---|---|
 | 不定参数 `...Option` | `Find(where string, options ...Option)` | 本节一 |
 | 函数类型 `type Option func(*option)` | `option.go` | 本节二 |
-| 闭包捕获 option 指针 | `WithSex` 等函数返回的闭包 | 第 06 篇三 |
-| `defer` 归还资源 | `defer releaseOption(opt)` | 第 06 篇四 |
-| `sync.Pool` 对象复用 | `cache.Get()` / `cache.Put()` | 第 09 篇四（**注意：此处属反模式，见 A16 说明**） |
+| 闭包捕获 option 指针 | `WithSex` 等函数返回的闭包 | 第 05 篇三 |
+| `defer` 归还资源 | `defer releaseOption(opt)` | 第 05 篇四 |
+| `sync.Pool` 对象复用 | `cache.Get()` / `cache.Put()` | 第 08 篇四（**注意：此处属反模式，见 A16 说明**） |
 | 私有结构体 + 构造函数 | `type option struct` / `New` | 本节一 |
 | 面向对象封装 | 只有 `WithXxx` 对外暴露 | 本节一 |
 
@@ -525,6 +525,6 @@ func main() {
 3. 结构体定义成私有 + 构造函数返回接口 = 封装，隐藏实现细节。
 4. 接口可以组合（内嵌），一个类型可实现多个接口。
 5. `opts ...Option` + `type Option func(*option)` 就是 **Options 模式**，与 `grpc.NewClient` 同源（原 `grpc.Dial` 已废弃）。
-6. **对照实验（A16 修正）**：三种写法按推荐顺序——① 默认选**结构体参数**（保留编译期检查、无池化负担）；② 需要向后兼容时用 **Options 模式**；③ `sync.Pool` 池化 option 属**反模式**（对象太小，收益趋近 0，却有 `reset()` 脏数据风险），Pool 应留给分配代价高的对象（见第 09 篇四）。
+6. **对照实验（A16 修正）**：三种写法按推荐顺序——① 默认选**结构体参数**（保留编译期检查、无池化负担）；② 需要向后兼容时用 **Options 模式**；③ `sync.Pool` 池化 option 属**反模式**（对象太小，收益趋近 0，却有 `reset()` 脏数据风险），Pool 应留给分配代价高的对象（见第 08 篇四）。
 7. **不要滥用 `interface{}`**，它会触发逃逸并丢失类型安全。
 8. Options 模式有真实代价（失去编译期检查、需维护 reset），**配置项少时用结构体参数更好**。
