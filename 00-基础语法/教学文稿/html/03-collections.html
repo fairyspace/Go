@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8e9">
+  <meta name="description" content="三种容器，各有脾气：固定格子、可伸缩窗口、键值字典。">
+  <title>03 数组、切片与 Map · Go 代码探险队</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="lesson-page" data-page="lesson" data-lesson="03">
+<a class="skip-link" href="#main-content">跳到正文</a><header class="topbar"><div class="topbar-inner"><a class="brand" href="index.html" aria-label="Go 代码探险队首页"><span class="brand-mark" aria-hidden="true"><span>go</span><i>✦</i></span><span class="brand-copy"><strong>Go 代码探险队</strong><small>一支笔 · 一段代码 · 一个知识点</small></span></a><nav class="top-links" aria-label="主要导航"><a href="index.html">学习地图</a><a href="00-roadmap.html">完整路线文稿</a><a href="../../codes/教学/README.md">示例代码</a></nav><div class="top-actions"><button class="tool-button focus-button" type="button" data-action="focus">专注阅读</button><button class="tool-button menu-button" type="button" data-action="menu" aria-expanded="false" aria-label="打开课程导航">☰</button></div></div></header>
+<div class="page-grid">
+  <aside class="side-col" aria-label="课程导航"><div class="progress-card sketch-card"><div class="progress-top"><span>学习进度</span><strong data-progress-label>0 / 9</strong></div><div class="progress-track" aria-label="学习进度"><span data-progress-bar></span></div><p>学完一篇，记得给自己一个小勾勾 ✓</p></div><label class="search-field"><span class="sr-only">搜索章节</span><span class="search-icon" aria-hidden="true">⌕</span><input type="search" placeholder="找一篇 Go 知识…" data-search-lessons></label><nav class="course-nav"><div class="nav-heading">学习路线 <span>✎</span></div><a class="course-link" href="00-roadmap.html" data-lesson-id="00" data-title="索引与学习路线"><span class="course-number">00</span><span class="course-name">索引与学习路线</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="01-setup.html" data-lesson-id="01" data-title="环境安装与项目结构"><span class="course-number">01</span><span class="course-name">环境安装与项目结构</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="02-values.html" data-lesson-id="02" data-title="变量、常量与数据类型"><span class="course-number">02</span><span class="course-name">变量、常量与数据类型</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="03-collections.html" data-lesson-id="03" data-title="数组、切片与 Map" aria-current="page"><span class="course-number">03</span><span class="course-name">数组、切片与 Map</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="04-struct-json.html" data-lesson-id="04" data-title="结构体与 JSON"><span class="course-number">04</span><span class="course-name">结构体与 JSON</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="05-flow-functions.html" data-lesson-id="05" data-title="流程控制与函数"><span class="course-number">05</span><span class="course-name">流程控制与函数</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="06-interfaces.html" data-lesson-id="06" data-title="接口与 Options 模式"><span class="course-number">06</span><span class="course-name">接口与 Options 模式</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="07-concurrency.html" data-lesson-id="07" data-title="并发编程"><span class="course-number">07</span><span class="course-name">并发编程</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="08-performance.html" data-lesson-id="08" data-title="性能调优"><span class="course-number">08</span><span class="course-name">性能调优</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="09-stdlib.html" data-lesson-id="09" data-title="常用标准库速查"><span class="course-number">09</span><span class="course-name">常用标准库速查</span><span class="course-check" aria-hidden="true">✓</span></a></nav><a class="code-index-link" href="../../codes/教学/README.md">📎 全部示例代码</a></aside>
+  <main class="lesson-main" id="main-content">
+    <div class="breadcrumbs"><a href="index.html">学习地图</a><span>／</span><span>给数据安家</span><span>／</span><strong>03</strong></div>
+    <section class="chapter-hero sketch-card">
+      <div class="chapter-kicker"><span class="chapter-sticker">任务 03</span><span>给数据安家</span><span class="hero-spark" aria-hidden="true">✦</span></div>
+      <h1>03 数组、切片与 Map</h1>
+      <p class="chapter-lead">学完本篇你将能够：区分数组与切片的本质差异、熟练完成切片的截取追加删除、掌握 Map 的六种声明方式与删除操作、避开 nil map 的写入陷阱。</p>
+      <div class="chapter-meta"><span>📝 一篇一练</span><span>🧩 小步掌握</span><a href="../03-%E6%95%B0%E7%BB%84%E3%80%81%E5%88%87%E7%89%87%E4%B8%8E%20Map.md">查看 Markdown 原稿 ↗</a></div>
+      <svg class="hero-doodle-mini" viewBox="0 0 100 90" aria-hidden="true"><path d="M12 65 Q28 42 41 58 T70 44" fill="none" stroke="#287d68" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M57 28 L77 9 L91 23 L71 43 Z" fill="#ffd46c" stroke="#263238" stroke-width="2.4" stroke-linejoin="round"/><path d="M57 28 L71 43 L67 52 L52 36 Z" fill="#f58a70" stroke="#263238" stroke-width="2.4"/><path d="M52 36 L47 54 L67 52" fill="#fff8e9" stroke="#263238" stroke-width="2.4" stroke-linejoin="round"/><path d="M21 75 Q33 82 42 74" fill="none" stroke="#e78361" stroke-width="2" stroke-linecap="round"/></svg>
+    </section>
+    <section class="memory-note sketch-card" aria-label="记忆提示">
+      <div class="memory-title"><span aria-hidden="true">✎</span> 一句话记住</div>
+      <p class="memory-line">数组是固定格子；切片是数组上的窗口；Map 是查名字的字典。<code>len</code> 看眼前，<code>cap</code> 看后备。</p>
+      <div class="recall-row"><span class="recall-badge">🧠 30 秒复述</span><span class="recall-question">对切片 append 后，为什么通常要把结果重新赋回原变量？</span><button type="button" class="hint-button" data-action="reveal">翻开提示 ↗</button></div>
+      <p class="recall-answer" hidden>切片像窗口；扩容可能换一张底层数组，返回的新窗口要接住。</p>
+    </section>
+    <button class="complete-button" type="button" data-action="complete" data-lesson="03"><span class="complete-icon">✓</span><span data-complete-label>我学会了，打个勾</span></button>
+    <article class="markdown-body" id="article">
+      <h2 id="section-01">概述</h2>
+<p>本文合并了原三篇教程：数组、切片、Map。三者是 Go 中最常用的三种集合类型，放在一起来讲，因为它们之间存在演进关系：</p>
+<div class="diagram-card"><div class="diagram-label">✎ 路线草图</div>
+<div class="diagram-scroll"><div class="diagram-paper"><svg class="mermaid-svg" width="772" height="132" viewBox="0 0 772 132" role="img" aria-label="流程图（手绘风格）" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arrowhead-75e3a8c9" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1 1 L8 4.5 L1 8" fill="none" stroke="#52655f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><path class="diagram-edge" d="M212.0,66.0 C248.9,66.0 257.1,66.0 294.0,66.0" marker-end="url(#arrowhead-75e3a8c9)"/><text class="diagram-edge-label" x="253.0" y="59.0" text-anchor="middle">加长度字段 · 解引用指针</text><path class="diagram-edge" d="M478.0,66.0 C514.9,66.0 523.1,66.0 560.0,66.0" marker-end="url(#arrowhead-75e3a8c9)"/><text class="diagram-edge-label" x="519.0" y="59.0" text-anchor="middle">底层是哈希表</text><rect class="diagram-node" x="30.0" y="31.0" width="181" height="72" rx="17" fill="#e5f1eb"/><path class="diagram-node-echo" d="M42.0,33.0 Q120.0,27.0 202.0,33.0"/><text class="diagram-node-text" x="120.0" y="61.0" text-anchor="middle" font-size="14"><tspan x="120.0" dy="0">数组 Array</tspan><tspan x="120.0" dy="18">定长 · 值类型</tspan></text><rect class="diagram-node" x="296.0" y="31.0" width="181" height="72" rx="17" fill="#fff0c2"/><path class="diagram-node-echo" d="M308.0,33.0 Q386.0,27.0 468.0,33.0"/><text class="diagram-node-text" x="386.0" y="61.0" text-anchor="middle" font-size="14"><tspan x="386.0" dy="0">切片 Slice</tspan><tspan x="386.0" dy="18">变长 · 含指针的值类型</tspan></text><rect class="diagram-node" x="562.0" y="31.0" width="181" height="72" rx="17" fill="#ffe3d6"/><path class="diagram-node-echo" d="M574.0,33.0 Q652.0,27.0 734.0,33.0"/><text class="diagram-node-text" x="652.0" y="61.0" text-anchor="middle" font-size="14"><tspan x="652.0" dy="0">映射 Map</tspan><tspan x="652.0" dy="18">键值对 · 无序</tspan></text></svg></div></div>
+<details class="diagram-source"><summary>看看这张图的 Mermaid 源码</summary>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">MERMAID</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-mermaid">graph LR
+    A[&quot;数组 Array&lt;br/&gt;定长 · 值类型&quot;] --&gt;|&quot;加长度字段&lt;br/&gt;解引用指针&quot;| B[&quot;切片 Slice&lt;br/&gt;变长 · 含指针的值类型&quot;]
+    B --&gt;|&quot;底层是哈希表&quot;| C[&quot;映射 Map&lt;br/&gt;键值对 · 无序&quot;]
+
+    style A fill:#1f4e79,color:#ffffff
+    style B fill:#2d6a2d,color:#ffffff
+    style C fill:#7a4a1f,color:#ffffff</code></pre></div>
+</details></div>
+<hr class="sketch-rule">
+<h2 id="section-02">一、数组 Array</h2>
+<p>数组是一个由<strong>固定长度</strong>的特定类型元素组成的序列，一个数组可以由零个或多个元素组成，一旦声明了，数组的长度就固定了，不能动态变化。</p>
+<blockquote class="sketch-quote">
+<p><code>len()</code> 和 <code>cap()</code> 返回结果<strong>始终一样</strong>。</p>
+</blockquote>
+<h3 id="section-03">声明数组</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s03_array/main.go
+package main
+
+import &quot;fmt&quot;
+
+func main() {
+	// 一维数组
+	var arr1 [5]int
+	fmt.Println(arr1) // [0 0 0 0 0]
+
+	var arr2 = [5]int{1, 2, 3, 4, 5}
+	arr3 := [5]int{1, 2, 3, 4, 5}
+	arr4 := [...]int{1, 2, 3, 4, 5, 6} // [...] 自动推断长度
+	arr5 := [5]int{0: 3, 1: 5, 4: 6}    // 下标初始化，未指定的取零值
+
+	// 二维数组
+	var arr6 = [3][5]int{{1, 2, 3, 4, 5}, {9, 8, 7, 6, 5}, {3, 4, 5, 6, 7}}
+	arr7 := [3][5]int{{1, 2, 3, 4, 5}, {9, 8, 7, 6, 5}, {3, 4, 5, 6, 7}}
+	arr8 := [...][5]int{{1, 2, 3, 4, 5}, {9, 8, 7, 6, 5}, {0: 3, 1: 5, 4: 6}}
+
+	fmt.Println(arr2, arr3, arr4, arr5)
+	fmt.Println(arr6, arr7, arr8)
+}</code></pre></div>
+<p>要点：</p>
+<ul class="lesson-list"><li><code>[5]int</code> 中的 <code>5</code> 是<strong>类型的一部分</strong>，不是长度字段</li><li><code>[...]int{...}</code> 让编译器自己数元素个数</li><li><code>[5]int{0: 3, 1: 5, 4: 6}</code> 下标初始化，未指定的元素取零值 → <code>[3 5 0 0 6]</code></li><li>二维数组的元素类型是 <code>[5]int</code>，可以继续嵌套</li></ul>
+<h3 id="section-04">注意事项</h3>
+<h4 id="section-05">一、数组不可动态变化</h4>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">var arr1 = [5]int{1, 2, 3, 4, 5}
+arr1[5] = 6
+// 报错：invalid array index 5 (out of bounds for 5-element array)</code></pre></div>
+<h4 id="section-06">二、数组是值类型，函数传参时复制整个数组</h4>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func modifyArr(a [5]int) {
+	a[1] = 20
+}
+
+func modifyArrPtr(a *[5]int) {
+	a[1] = 20
+}
+
+func main() {
+	var arr = [5]int{1, 2, 3, 4, 5}
+
+	modifyArr(arr)     // 传值：函数内改动不影响外部
+	fmt.Println(arr)   // [1 2 3 4 5]
+
+	modifyArrPtr(&amp;arr) // 传地址：改动生效
+	fmt.Println(arr)   // [1 20 3 4 5]
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>传递大数组会有明显的内存拷贝开销，这是实际开发中<strong>几乎总是用切片替代数组</strong>的原因。</p>
+</blockquote>
+<h4 id="section-07">三、类型必须完全一致才能赋值</h4>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">var arr  = [5]int{1, 2, 3, 4, 5}
+var arr1 [5]int = arr //  OK
+var arr2 [6]int = arr //  报错：cannot use arr (type [5]int) as type [6]int in assignment</code></pre></div>
+<blockquote class="sketch-quote">
+<p>即使元素类型相同，长度不同也是<strong>不同的类型</strong>，不能赋值。</p>
+</blockquote>
+<hr class="sketch-rule">
+<h2 id="section-08">二、切片 Slice</h2>
+<p>切片是一种<strong>动态数组</strong>，比数组操作灵活，长度不是固定的，可以进行追加和删除。</p>
+<blockquote class="sketch-quote">
+<p><code>len()</code> 和 <code>cap()</code> 返回结果<strong>可相同也可不同</strong>。</p>
+</blockquote>
+<h3 id="section-09">切片与数组的对比</h3>
+<div class="table-wrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">数组</th><th style="text-align:left">切片</th></tr></thead><tbody><tr><td style="text-align:left">长度</td><td style="text-align:left">声明时固定</td><td style="text-align:left">可变</td></tr><tr><td style="text-align:left">类型</td><td style="text-align:left">纯值类型</td><td style="text-align:left">含指针的值类型（<code>{ptr, len, cap}</code>）</td></tr><tr><td style="text-align:left">函数传参</td><td style="text-align:left">复制整个数组</td><td style="text-align:left">复制切片头（指向同一底层数组）</td></tr><tr><td style="text-align:left"><code>append</code></td><td style="text-align:left">不支持</td><td style="text-align:left">支持，自动扩容</td></tr><tr><td style="text-align:left"><code>nil</code></td><td style="text-align:left">不适用</td><td style="text-align:left">空切片可为 nil</td></tr><tr><td style="text-align:left">内存开销</td><td style="text-align:left">大</td><td style="text-align:left">小（结构体只有指针 + len + cap）</td></tr></tbody></table></div>
+<blockquote class="sketch-quote">
+<p>切片的三要素：<strong>底层数组指针 ptr + 长度 len + 容量 cap</strong>。<code>s[i]</code> 实际是 <code>*(ptr + i*size)</code>。</p>
+</blockquote>
+<h3 id="section-10">声明切片</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s04_slice/main.go
+package main
+
+import &quot;fmt&quot;
+
+func main() {
+	var sli1 []int        // nil 切片
+	fmt.Printf(&quot;len=%d cap=%d slice=%v nil=%v\n&quot;, len(sli1), cap(sli1), sli1, sli1 == nil)
+
+	sli2 := []int{}       // 空切片（非 nil）
+	sli3 := []int{1, 2, 3, 4, 5} // 字面量
+	sli4 := make([]int, 5)       // 长度 5，容量 5
+	sli5 := make([]int, 5, 9)    // 长度 5，容量 9（预留空间）
+	sli6 := sli3[1:3]            // 从已有切片切出
+
+	fmt.Println(sli2, sli3, sli4, sli5, sli6)
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>nil 切片 vs 空切片</strong>：两者都能 <code>append</code>、都能 <code>range</code>（循环 0 次）、<code>len()</code> 都是 0。区别在于：</p>
+<ul class="lesson-list"><li><code>sli1 == nil</code> 为 <code>true</code>，<code>sli2 == nil</code> 为 <code>false</code></li><li>JSON 序列化时，nil 切片输出 <code>null</code>，空切片输出 <code>[]</code></li><li>nil 切片可以读可以 append，但<strong>不能直接赋值元素</strong>：<code>sli1[0] = 1</code> 会 panic</li></ul>
+</blockquote>
+<h3 id="section-11">截取切片</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">sli := []int{1, 2, 3, 4, 5, 6}
+
+fmt.Println(sli[1])    // 2         索引
+fmt.Println(sli[:])    // [1 2 3 4 5 6]  全部
+fmt.Println(sli[1:])   // [2 3 4 5 6]    左闭右开
+fmt.Println(sli[:4])   // [1 2 3 4]
+fmt.Println(sli[0:3])  // [1 2 3]
+fmt.Println(sli[0:3:4]) // [1 2 3]，容量限制为 4</code></pre></div>
+<p><strong>三索引切片 <code>a[low:high:max]</code></strong> 中 <code>max</code> 是<strong>容量上限</strong>。它解决了「切片扩容时意外写坏别人数据」的问题：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">s := make([]int, 3, 10)
+s[0], s[1], s[2] = 1, 2, 3
+
+sub := s[0:3:3] // 容量限制为 3
+sub = append(sub, 99)
+fmt.Println(s)   // [1 2 3 0 0 0 0 0 0 0] —— s 未被污染
+fmt.Println(sub) // [1 2 3 99]</code></pre></div>
+<blockquote class="sketch-quote">
+<p>如果写成 <code>s[0:3]</code>（容量仍为 10），<code>append(sub, 99)</code> 会直接写进 <code>s[3]</code>，污染原切片。</p>
+</blockquote>
+<h3 id="section-12">追加切片</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">sli := []int{4, 5, 6} // len=3 cap=3
+sli = append(sli, 7)  // len=4 cap=6  扩容，容量变为 2 倍
+sli = append(sli, 8)  // len=5 cap=6  容量够，不扩容
+sli = append(sli, 9)  // len=6 cap=6
+sli = append(sli, 10) // len=7 cap=12 再次扩容</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>append 扩容时 cap 会翻倍</strong>。（Go 1.18+ 的具体策略是容量 256 以内翻倍、以上按约 1.25 倍增长，因此并非严格翻倍。）</p>
+<p>扩容会<strong>分配新数组并复制旧元素</strong>，所以已知最终长度时优先预分配：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">sli := make([]int, 0, 100) // 一次分配，后续 append 不再扩容</code></pre></div>
+<p>详见第 08 篇「逃逸分析场景 03」。</p>
+</blockquote>
+<h3 id="section-13">删除切片</h3>
+<p>Go 没有内置 delete 函数，需自己实现：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">sli := []int{1, 2, 3, 4, 5, 6, 7, 8}
+
+// 删除尾部 2 个
+sli = sli[:len(sli)-2]
+
+// 删除开头 2 个
+sli = sli[2:]
+
+// 删除中间 2 个（下标 3、4）
+sli = append(sli[:3], sli[3+2:]...)</code></pre></div>
+<p>封装成通用函数：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// 删除下标为 i 的元素
+func deleteElem(s []int, i int) []int {
+	return append(s[:i], s[i+1:]...)
+}
+
+// 保留满足条件的元素
+func filter(s []int, keep func(int) bool) []int {
+	res := s[:0] // 复用底层数组，零分配（第 08 篇）
+	for _, v := range s {
+		if keep(v) {
+			res = append(res, v)
+		}
+	}
+	return res
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>⚠️ <code>append(s[:i], s[i+1:]...)</code> 复用底层数组，<strong>如果原切片还有其他引用者（子切片），会污染它们的数据</strong>。安全做法是显式复制：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">res := make([]int, 0, len(s)-1)
+res = append(res, s[:i]...)
+res = append(res, s[i+1:]...)</code></pre></div>
+</blockquote>
+<h3 id="section-14">复制</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">src := []int{1, 2, 3}
+
+// 目标切片必须已分配
+dst := make([]int, len(src))
+copy(dst, src) // 内置函数，复制元素，返回复制的个数
+
+// 也可以把切片截成数组来复制（编译期会优化）
+var arr [3]int
+copy(arr[:], src)</code></pre></div>
+<hr class="sketch-rule">
+<h2 id="section-15">三、映射 Map</h2>
+<p>Map 是<strong>无序的 key-value</strong> 数据结构。</p>
+<blockquote class="sketch-quote">
+<p><strong>key 必须是可比较类型（comparable）</strong>：数值、字符串、布尔、指针、通道、接口，以及全部字段均可比较的结构体。 <strong>slice、map、func 不能做 key</strong>（编译期报错）；含有这些类型字段的结构体也不能做 key。 <strong>value 才是任意类型</strong>。所有 key 必须同一数据类型，所有 value 必须同一数据类型，key 和 value 的类型可以不相同。</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">m := map[string]int{}
+// m[[]int{1}] = 1  // ❌ 编译错误：invalid map key type []int
+
+var k any = []int{1}
+m2 := map[any]int{}
+m2[k] = 1         // ✅ 能编译（interface 可比较），但运行时 panic:
+                   // hash of unhashable type []int</code></pre></div>
+<p>实际开发中 key 最常用的是 <code>string</code> 和 <code>int</code>，结构体做 key 时注意不要包含 slice/map 字段。</p>
+</blockquote>
+<h3 id="section-16">声明 Map</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s06_map/main.go
+package main
+
+import &quot;fmt&quot;
+
+func main() {
+	// 六种等价写法
+	var p1 map[int]string
+	p1 = make(map[int]string)
+	p1[1] = &quot;Tom&quot;
+
+	var p2 map[int]string = map[int]string{}
+	var p3 map[int]string = make(map[int]string)
+	p4 := map[int]string{}
+	p5 := make(map[int]string)
+	p6 := map[int]string{
+		1: &quot;Tom&quot;,
+	}
+
+	_ = p1
+	_ = p2
+	_ = p3
+	_ = p4
+	_ = p5
+	_ = p6
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>nil map 的陷阱</strong>：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">var m map[string]int
+fmt.Println(m[&quot;a&quot;])      // 0      读取安全
+delete(m, &quot;a&quot;)           //        删除安全
+m[&quot;a&quot;] = 1               // panic: assignment to entry in nil map</code></pre></div>
+<p>作为函数返回值或结构体字段时，通常要判断：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">if m == nil {
+	m = make(map[string]int)
+}</code></pre></div>
+</blockquote>
+<h3 id="section-17">嵌套 Map 与 JSON 序列化</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">res := make(map[string]interface{})
+res[&quot;code&quot;] = 200
+res[&quot;msg&quot;] = &quot;success&quot;
+res[&quot;data&quot;] = map[string]interface{}{
+	&quot;username&quot;: &quot;Tom&quot;,
+	&quot;age&quot;:      &quot;30&quot;,
+	&quot;hobby&quot;:    []string{&quot;读书&quot;, &quot;爬山&quot;},
+}
+fmt.Println(&quot;map data :&quot;, res)
+
+// 序列化
+jsons, errs := json.Marshal(res)
+if errs != nil {
+	fmt.Println(&quot;json marshal error:&quot;, errs)
+}
+fmt.Println(&quot;--- map to json ---&quot;)
+fmt.Println(&quot;json data :&quot;, string(jsons))
+
+// 反序列化
+res2 := make(map[string]interface{})
+errs = json.Unmarshal(jsons, &amp;res2)
+if errs != nil {
+	fmt.Println(&quot;json unmarshal error:&quot;, errs)
+}
+fmt.Println(&quot;--- json to map ---&quot;)
+fmt.Println(&quot;map data :&quot;, res2)</code></pre></div>
+<blockquote class="sketch-quote">
+<p>⚠️ 这里的 <code>res2</code> 中所有数字都会变成 <code>float64</code>，这是第 04 篇要讲的经典坑。</p>
+</blockquote>
+<h3 id="section-18">编辑和删除</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">person := map[int]string{
+	1: &quot;Tom&quot;,
+	2: &quot;Aaron&quot;,
+	3: &quot;John&quot;,
+}
+fmt.Println(&quot;data :&quot;, person)
+
+person[2] = &quot;Jack&quot;  // 修改
+person[4] = &quot;Kevin&quot; // 新增
+fmt.Println(&quot;data :&quot;, person)
+
+delete(person, 2)   // 删除
+delete(person, 99)  // 删除不存在的 key 不会报错
+fmt.Println(&quot;data :&quot;, person)</code></pre></div>
+<h3 id="section-19">判断 key 是否存在</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">val, ok := person[1]
+if ok {
+	fmt.Println(&quot;存在，值为&quot;, val)
+}
+
+// 忽略 ok
+val2 := person[1]
+fmt.Println(val2) // 不存在时为零值 &quot;&quot;</code></pre></div>
+<blockquote class="sketch-quote">
+<p>与之配套，<code>val == &quot;&quot;</code> <strong>不能</strong>用来判断 key 是否存在——key 存在但值恰好为空字符串时会误判。</p>
+</blockquote>
+<h3 id="section-20">遍历</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">for k, v := range person {
+	fmt.Printf(&quot;person[%d]: %s\n&quot;, k, v)
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>⚠️ <strong>Map 遍历顺序是随机的</strong>。Go 官方有意随机化以防止开发者依赖遍历顺序。需要稳定输出时，先把 key 收集起来排序：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">keys := make([]int, 0, len(person))
+for k := range person {
+	keys = append(keys, k)
+}
+sort.Ints(keys)
+for _, k := range keys {
+	fmt.Println(k, person[k])
+}</code></pre></div>
+<p>这正是第 05 篇「生成签名」函数里必须 <code>sort.Strings(key)</code> 的原因。</p>
+</blockquote>
+<h3 id="section-21">常见用途</h3>
+<p>Map 适合表达「<strong>键的集合是动态的</strong>」的映射关系：</p>
+<ul class="lesson-list"><li>用字符串字段过滤结构体列表</li><li>缓存 / 字典 / 计数器</li><li>第三方接口的动态响应结构（详见第 04 篇）</li></ul>
+<p><strong>选型规则</strong>：字段固定 → struct；字段动态 → map；<code>map[string]interface{}</code> 只用于<strong>结构确实未知</strong>的透传场景（性能代价见第 08 篇「两个开发注意点」）。</p>
+<h2 id="section-22">本篇要点</h2>
+<ol class="lesson-list"><li>数组定长、是纯值类型；切片是<strong>含指针的值类型</strong>（<code>{ptr, len, cap}</code> 结构体），变长且共享底层数组。<strong>实际开发优先用切片</strong>。</li><li>切片 = 指针 + len + cap；<code>cap</code> 在数组中恒等于 <code>len</code>。</li><li>三索引切片 <code>a[low:high:max]</code> 用容量隔离避免数据污染。</li><li><code>append</code> 扩容会重新分配并复制，已知长度时用 <code>make([]T, 0, n)</code> 预分配。</li><li>Go 没有 delete 函数，删除靠 <code>append(s[:i], s[i+1:]...)</code> 组合。</li><li>nil map <strong>可读可 delete 但不可写</strong>。</li><li>Map 遍历无序，需要稳定顺序就排序 key。</li><li><code>val, ok := m[k]</code> 判断存在性，不要用 <code>val == 零值</code>。</li><li>字段固定用 struct，字段动态才用 map。</li></ol>
+    </article>
+    <section class="code-library" id="companion-code"><div class="section-stamp">🧰 本章工具箱</div><h2>配套源码（已嵌入）</h2><p class="code-library-intro">下面的源码来自仓库中的 <code>codes/教学</code>，展开即可复制；页面不需要联网加载代码。</p><section class="code-group"><h3>数组：固定长度的格子</h3><div class="run-command"><span aria-hidden="true">▶</span><code>cd 00-基础语法/codes/教学 &amp;&amp; go run ./s03_array</code></div><details class="source-file"><summary><span class="source-path">s03_array/main.go</span><span class="source-open">展开源码 <b>＋</b></span></summary><div class="source-actions"><a href="../../codes/教学/s03_array/main.go" download>下载原文件 ↗</a><span>代码已嵌入本页，可离线查看</span></div><div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s03_array/main.go —— 对应教学文稿 03 数组、切片与 Map（一）数组
+//
+// 运行：go run ./s03_array
+package main
+
+import &quot;fmt&quot;
+
+func modifyArr(a [5]int) {
+	a[1] = 20 // 传值：只改副本
+}
+
+func modifyArrPtr(a *[5]int) {
+	a[1] = 20 // 传地址：改动生效
+}
+
+func main() {
+	// ==================== 声明数组 ====================
+	// 一维数组
+	var arr1 [5]int
+	fmt.Println(&quot;零值数组：&quot;, arr1) // [0 0 0 0 0]
+
+	var arr2 = [5]int{1, 2, 3, 4, 5}
+	arr3 := [5]int{1, 2, 3, 4, 5}
+	arr4 := [...]int{1, 2, 3, 4, 5, 6} // [...] 自动推断长度
+	arr5 := [5]int{0: 3, 1: 5, 4: 6}   // 下标初始化，未指定的取零值
+
+	// 二维数组
+	var arr6 = [3][5]int{{1, 2, 3, 4, 5}, {9, 8, 7, 6, 5}, {3, 4, 5, 6, 7}}
+	arr7 := [3][5]int{{1, 2, 3, 4, 5}, {9, 8, 7, 6, 5}, {3, 4, 5, 6, 7}}
+	arr8 := [...][5]int{{1, 2, 3, 4, 5}, {9, 8, 7, 6, 5}, {0: 3, 1: 5, 4: 6}}
+
+	fmt.Println(&quot;arr2:&quot;, arr2)
+	fmt.Println(&quot;arr3:&quot;, arr3)
+	fmt.Println(&quot;arr4:&quot;, arr4)
+	fmt.Println(&quot;arr5:&quot;, arr5) // [3 5 0 0 6]
+	fmt.Println(&quot;arr6:&quot;, arr6)
+	fmt.Println(&quot;arr7:&quot;, arr7)
+	fmt.Println(&quot;arr8:&quot;, arr8)
+
+	// 数组的 len() 与 cap() 始终相同
+	fmt.Printf(&quot;len=%d cap=%d\n&quot;, len(arr2), cap(arr2))
+
+	// ==================== 注意事项一：长度不可变 ====================
+	// 取消下面两行的注释可看到报错：
+	// invalid array index 5 (out of bounds for 5-element array)
+	// arr2[5] = 6
+
+	// ==================== 注意事项二：值类型 ====================
+	arr := [5]int{1, 2, 3, 4, 5}
+
+	modifyArr(arr)           // 传值：函数内改动不影响外部
+	fmt.Println(&quot;传值后：&quot;, arr) // [1 2 3 4 5]
+
+	modifyArrPtr(&amp;arr)       // 传地址：改动生效
+	fmt.Println(&quot;传址后：&quot;, arr) // [1 20 3 4 5]
+
+	// ==================== 注意事项三：类型必须完全一致 ====================
+	// 取消下面这行注释可看到报错：
+	// cannot use arr (type [5]int) as type [6]int in assignment
+	// var arrOther [6]int = arr
+
+	var arrSame [5]int = arr // 长度与元素类型都相同，OK
+	fmt.Println(&quot;同类型赋值：&quot;, arrSame)
+}</code></pre></div></details></section><section class="code-group"><h3>切片：会长大的窗口</h3><div class="run-command"><span aria-hidden="true">▶</span><code>cd 00-基础语法/codes/教学 &amp;&amp; go run ./s04_slice</code></div><details class="source-file"><summary><span class="source-path">s04_slice/main.go</span><span class="source-open">展开源码 <b>＋</b></span></summary><div class="source-actions"><a href="../../codes/教学/s04_slice/main.go" download>下载原文件 ↗</a><span>代码已嵌入本页，可离线查看</span></div><div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s04_slice/main.go —— 对应教学文稿 03 数组、切片与 Map（二）切片
+//
+// 运行：go run ./s04_slice
+package main
+
+import &quot;fmt&quot;
+
+// 删除下标为 i 的元素
+func deleteElem(s []int, i int) []int {
+	return append(s[:i], s[i+1:]...)
+}
+
+// 保留满足条件的元素（复用底层数组，零分配）
+func filter(s []int, keep func(int) bool) []int {
+	res := s[:0]
+	for _, v := range s {
+		if keep(v) {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
+// 安全的删除：显式复制，不污染原有引用者
+func deleteElemSafe(s []int, i int) []int {
+	res := make([]int, 0, len(s)-1)
+	res = append(res, s[:i]...)
+	res = append(res, s[i+1:]...)
+	return res
+}
+
+func main() {
+	// ==================== 声明切片 ====================
+	var sli1 []int // nil 切片
+	fmt.Printf(&quot;nil 切片：  len=%d cap=%d slice=%v nil=%v\n&quot;, len(sli1), cap(sli1), sli1, sli1 == nil)
+
+	sli2 := []int{}              // 空切片（非 nil）
+	sli3 := []int{1, 2, 3, 4, 5} // 字面量
+	sli4 := make([]int, 5)       // 长度 5，容量 5
+	sli5 := make([]int, 5, 9)    // 长度 5，容量 9（预留空间）
+	sli6 := sli3[1:3]            // 从已有切片切出
+
+	fmt.Printf(&quot;空切片：    len=%d cap=%d slice=%v nil=%v\n&quot;, len(sli2), cap(sli2), sli2, sli2 == nil)
+	fmt.Printf(&quot;字面量：    len=%d cap=%d slice=%v\n&quot;, len(sli3), cap(sli3), sli3)
+	fmt.Printf(&quot;make(5)：   len=%d cap=%d slice=%v\n&quot;, len(sli4), cap(sli4), sli4)
+	fmt.Printf(&quot;make(5,9)： len=%d cap=%d slice=%v\n&quot;, len(sli5), cap(sli5), sli5)
+	fmt.Printf(&quot;切出：      len=%d cap=%d slice=%v\n&quot;, len(sli6), cap(sli6), sli6)
+
+	// ==================== 截取切片 ====================
+	sli := []int{1, 2, 3, 4, 5, 6}
+	fmt.Println(&quot;\n--- 截取 ---&quot;)
+	fmt.Println(&quot;sli[1]     ==&quot;, sli[1])
+	fmt.Println(&quot;sli[:]     ==&quot;, sli[:])
+	fmt.Println(&quot;sli[1:]    ==&quot;, sli[1:])
+	fmt.Println(&quot;sli[:4]    ==&quot;, sli[:4])
+	fmt.Println(&quot;sli[0:3]   ==&quot;, sli[0:3])
+	fmt.Println(&quot;sli[0:3:4] ==&quot;, sli[0:3:4])
+
+	// ==================== 三索引切片：容量隔离 ====================
+	fmt.Println(&quot;\n--- 三索引切片防止数据污染 ---&quot;)
+	s := make([]int, 3, 10)
+	s[0], s[1], s[2] = 1, 2, 3
+
+	sub := s[0:3:3] // 容量限制为 3
+	sub = append(sub, 99)
+	fmt.Println(&quot;原切片 s：&quot;, s)     // [1 2 3 0 0 0 0 0 0 0] —— 未被污染
+	fmt.Println(&quot;子切片 sub：&quot;, sub) // [1 2 3 99]
+
+	// 对比：不限制容量就会污染原切片
+	s2 := make([]int, 3, 10)
+	s2[0], s2[1], s2[2] = 1, 2, 3
+	sub2 := s2[0:3] // 容量仍为 10
+	sub2 = append(sub2, 99)
+	fmt.Println(&quot;原切片 s2：&quot;, s2) // [1 2 3 99 ...] —— 被污染
+	fmt.Println(&quot;子切片 sub2：&quot;, sub2)
+
+	// ==================== 追加切片 ====================
+	fmt.Println(&quot;\n--- 追加：观察扩容 ---&quot;)
+	sli7 := []int{4, 5, 6} // len=3 cap=3
+	for i := 7; i &lt;= 10; i++ {
+		sli7 = append(sli7, i)
+		fmt.Printf(&quot;append %2d 后：len=%d cap=%d slice=%v\n&quot;, i, len(sli7), cap(sli7), sli7)
+	}
+
+	// 预分配：一次到位，不再扩容
+	pre := make([]int, 0, 100)
+	pre = append(pre, 1, 2, 3)
+	fmt.Printf(&quot;预分配：len=%d cap=%d\n&quot;, len(pre), cap(pre))
+
+	// ==================== 删除切片 ====================
+	fmt.Println(&quot;\n--- 删除 ---&quot;)
+	del := []int{1, 2, 3, 4, 5, 6, 7, 8}
+
+	// 删除尾部 2 个
+	tail := del[:len(del)-2]
+	fmt.Println(&quot;删除尾部 2 个：&quot;, tail)
+
+	// 删除开头 2 个
+	head := del[2:]
+	fmt.Println(&quot;删除开头 2 个：&quot;, head)
+
+	// 删除中间 2 个（下标 3、4）
+	mid := make([]int, len(del))
+	copy(mid, del) // 先复制，避免污染原切片
+	mid = append(mid[:3], mid[3+2:]...)
+	fmt.Println(&quot;删除中间 2 个：&quot;, mid)
+
+	// 封装成函数
+	fmt.Println(&quot;deleteElem：&quot;, deleteElem([]int{1, 2, 3, 4, 5}, 1))
+	fmt.Println(&quot;deleteElemSafe：&quot;, deleteElemSafe([]int{1, 2, 3, 4, 5}, 1))
+	fmt.Println(&quot;filter 保留偶数：&quot;, filter([]int{1, 2, 3, 4, 5, 6}, func(v int) bool { return v%2 == 0 }))
+
+	// ==================== 复制 ====================
+	fmt.Println(&quot;\n--- 复制 ---&quot;)
+	src := []int{1, 2, 3}
+	dst := make([]int, len(src))
+	n := copy(dst, src)
+	fmt.Println(&quot;copy 返回复制的个数：&quot;, n, &quot;dst：&quot;, dst)
+}</code></pre></div></details></section><section class="code-group"><h3>Map：键值字典</h3><div class="run-command"><span aria-hidden="true">▶</span><code>cd 00-基础语法/codes/教学 &amp;&amp; go run ./s06_map</code></div><details class="source-file"><summary><span class="source-path">s06_map/main.go</span><span class="source-open">展开源码 <b>＋</b></span></summary><div class="source-actions"><a href="../../codes/教学/s06_map/main.go" download>下载原文件 ↗</a><span>代码已嵌入本页，可离线查看</span></div><div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s06_map/main.go —— 对应教学文稿 03 数组、切片与 Map（三）映射 Map
+//
+// 运行：go run ./s06_map
+package main
+
+import (
+	&quot;encoding/json&quot;
+	&quot;fmt&quot;
+	&quot;sort&quot;
+)
+
+func main() {
+	// ==================== 声明 Map：六种等价写法 ====================
+	var p1 map[int]string
+	p1 = make(map[int]string)
+	p1[1] = &quot;Tom&quot;
+
+	var p2 map[int]string = map[int]string{}
+	var p3 map[int]string = make(map[int]string)
+	p4 := map[int]string{}
+	p5 := make(map[int]string)
+	p6 := map[int]string{
+		1: &quot;Tom&quot;,
+	}
+
+	for i, m := range []map[int]string{p1, p2, p3, p4, p5, p6} {
+		fmt.Printf(&quot;写法%d：len=%d 内容=%v\n&quot;, i+1, len(m), m)
+	}
+
+	// ==================== nil map 的陷阱 ====================
+	fmt.Println(&quot;\n--- nil map ---&quot;)
+	var nilMap map[string]int
+	fmt.Println(&quot;读取安全：&quot;, nilMap[&quot;a&quot;])   // 0
+	delete(nilMap, &quot;a&quot;)                 // 删除安全
+	fmt.Println(&quot;删除后仍可读：&quot;, nilMap[&quot;a&quot;]) // 0
+	// nilMap[&quot;a&quot;] = 1                          // panic: assignment to entry in nil map
+
+	// ==================== 嵌套 Map 与 JSON ====================
+	res := make(map[string]interface{})
+	res[&quot;code&quot;] = 200
+	res[&quot;msg&quot;] = &quot;success&quot;
+	res[&quot;data&quot;] = map[string]interface{}{
+		&quot;username&quot;: &quot;Tom&quot;,
+		&quot;age&quot;:      &quot;30&quot;,
+		&quot;hobby&quot;:    []string{&quot;读书&quot;, &quot;爬山&quot;},
+	}
+	fmt.Println(&quot;\nmap data :&quot;, res)
+
+	// 序列化
+	jsons, errs := json.Marshal(res)
+	if errs != nil {
+		fmt.Println(&quot;json marshal error:&quot;, errs)
+	}
+	fmt.Println(&quot;--- map to json ---&quot;)
+	fmt.Println(&quot;json data :&quot;, string(jsons))
+
+	// 反序列化
+	res2 := make(map[string]interface{})
+	if err := json.Unmarshal(jsons, &amp;res2); err != nil {
+		fmt.Println(&quot;json unmarshal error:&quot;, err)
+	}
+	fmt.Println(&quot;--- json to map ---&quot;)
+	fmt.Println(&quot;map data :&quot;, res2)
+	// 注意：res2 中的数字全部变成了 float64（见第 04 篇）
+
+	// ==================== 编辑和删除 ====================
+	fmt.Println(&quot;\n--- 编辑删除 ---&quot;)
+	person := map[int]string{
+		1: &quot;Tom&quot;,
+		2: &quot;Aaron&quot;,
+		3: &quot;John&quot;,
+	}
+	fmt.Println(&quot;data :&quot;, person)
+
+	person[2] = &quot;Jack&quot;  // 修改
+	person[4] = &quot;Kevin&quot; // 新增
+	fmt.Println(&quot;data :&quot;, person)
+
+	delete(person, 2)  // 删除
+	delete(person, 99) // 删除不存在的 key 不会报错
+	fmt.Println(&quot;data :&quot;, person)
+
+	// ==================== 判断 key 是否存在 ====================
+	fmt.Println(&quot;\n--- 判断存在性 ---&quot;)
+	val, ok := person[1]
+	if ok {
+		fmt.Println(&quot;存在，值为&quot;, val)
+	}
+	// 与之配套，val == &quot;&quot; 不能用来判断 key 是否存在
+	fmt.Println(&quot;person[1] 是否为空串：&quot;, person[1] == &quot;&quot;)
+
+	// ==================== 遍历 ====================
+	fmt.Println(&quot;\n--- 遍历（顺序随机）---&quot;)
+	for k, v := range person {
+		fmt.Printf(&quot;person[%d]: %s\n&quot;, k, v)
+	}
+
+	// 需要稳定顺序时，先排序 key
+	keys := make([]int, 0, len(person))
+	for k := range person {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	for _, k := range keys {
+		fmt.Printf(&quot;有序 person[%d]: %s\n&quot;, k, person[k])
+	}
+}</code></pre></div></details></section><a class="repo-code-link" href="../../codes/教学/README.md">看完整代码目录与运行说明 ↗</a></section>
+    <nav class="lesson-pager" aria-label="篇章翻页"><a class="previous-lesson" href="02-values.html"><span>← 上一篇</span><strong>02 变量、常量与数据类型</strong></a><a class="next-lesson" href="04-struct-json.html"><span>下一站 →</span><strong>04 结构体与 JSON</strong></a></nav>
+    <footer class="page-footer"><span>✿ 边看边敲，比只看更牢。</span><span>源稿：<a href="../03-%E6%95%B0%E7%BB%84%E3%80%81%E5%88%87%E7%89%87%E4%B8%8E%20Map.md">03-数组、切片与 Map.md</a></span></footer>
+  </main>
+  <aside class="toc-col" aria-label="本页导航"><div class="toc-card sketch-card"><div class="toc-title">本页小地图 <span>⌁</span></div><nav id="toc-nav"><ul class="toc-list"><li class=""><a href="#section-01">概述</a></li><li class=""><a href="#section-02">一、数组 Array</a></li><li class="toc-sub"><a href="#section-03">声明数组</a></li><li class="toc-sub"><a href="#section-04">注意事项</a></li><li class=""><a href="#section-08">二、切片 Slice</a></li><li class="toc-sub"><a href="#section-09">切片与数组的对比</a></li><li class="toc-sub"><a href="#section-10">声明切片</a></li><li class="toc-sub"><a href="#section-11">截取切片</a></li><li class="toc-sub"><a href="#section-12">追加切片</a></li><li class="toc-sub"><a href="#section-13">删除切片</a></li><li class="toc-sub"><a href="#section-14">复制</a></li><li class=""><a href="#section-15">三、映射 Map</a></li><li class="toc-sub"><a href="#section-16">声明 Map</a></li><li class="toc-sub"><a href="#section-17">嵌套 Map 与 JSON 序列化</a></li><li class="toc-sub"><a href="#section-18">编辑和删除</a></li><li class="toc-sub"><a href="#section-19">判断 key 是否存在</a></li><li class="toc-sub"><a href="#section-20">遍历</a></li><li class="toc-sub"><a href="#section-21">常见用途</a></li><li class=""><a href="#section-22">本篇要点</a></li></ul></nav><div class="toc-tip">读完一小节，就自己讲一遍。<span>↙</span></div></div></aside>
+</div>
+<div class="mobile-scrim" data-action="close-menu" aria-hidden="true"></div>
+<script src="assets/app.js" defer></script>
+</body>
+</html>
