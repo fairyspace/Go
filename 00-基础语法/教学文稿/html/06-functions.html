@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8e9">
+  <meta name="description" content="把逻辑打包复用，理解闭包捕获，以及 defer 的执行时机。">
+  <title>06 函数、闭包与 defer · Go 代码探险队</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="lesson-page" data-page="lesson" data-lesson="06">
+<a class="skip-link" href="#main-content">跳到正文</a><header class="topbar"><div class="topbar-inner"><a class="brand" href="index.html" aria-label="Go 代码探险队首页"><span class="brand-mark" aria-hidden="true"><span>go</span><i>✦</i></span><span class="brand-copy"><strong>Go 代码探险队</strong><small>一支笔 · 一段代码 · 一个知识点</small></span></a><nav class="top-links" aria-label="主要导航"><a href="index.html">学习地图</a><a href="00-roadmap.html">完整路线文稿</a><a href="../../codes/教学/README.md">示例代码</a></nav><div class="top-actions"><button class="tool-button focus-button" type="button" data-action="focus">专注阅读</button><button class="tool-button menu-button" type="button" data-action="menu" aria-expanded="false" aria-label="打开课程导航">☰</button></div></div></header>
+<div class="page-grid">
+  <aside class="side-col" aria-label="课程导航"><div class="progress-card sketch-card"><div class="progress-top"><span>学习进度</span><strong data-progress-label>0 / 10</strong></div><div class="progress-track" aria-label="学习进度"><span data-progress-bar></span></div><p>学完一篇，记得给自己一个小勾勾 ✓</p></div><label class="search-field"><span class="sr-only">搜索章节</span><span class="search-icon" aria-hidden="true">⌕</span><input type="search" placeholder="找一篇 Go 知识…" data-search-lessons></label><nav class="course-nav"><div class="nav-heading">学习路线 <span>✎</span></div><a class="course-link" href="00-roadmap.html" data-lesson-id="00" data-title="索引与学习路线"><span class="course-number">00</span><span class="course-name">索引与学习路线</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="01-setup.html" data-lesson-id="01" data-title="环境安装与项目结构"><span class="course-number">01</span><span class="course-name">环境安装与项目结构</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="02-values.html" data-lesson-id="02" data-title="变量、常量与数据类型"><span class="course-number">02</span><span class="course-name">变量、常量与数据类型</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="03-collections.html" data-lesson-id="03" data-title="数组、切片与 Map"><span class="course-number">03</span><span class="course-name">数组、切片与 Map</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="04-struct-json.html" data-lesson-id="04" data-title="结构体与 JSON"><span class="course-number">04</span><span class="course-name">结构体与 JSON</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="05-control-flow.html" data-lesson-id="05" data-title="循环与流程控制"><span class="course-number">05</span><span class="course-name">循环与流程控制</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="06-functions.html" data-lesson-id="06" data-title="函数、闭包与 defer" aria-current="page"><span class="course-number">06</span><span class="course-name">函数、闭包与 defer</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="07-interfaces.html" data-lesson-id="07" data-title="接口与 Options 模式"><span class="course-number">07</span><span class="course-name">接口与 Options 模式</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="08-concurrency.html" data-lesson-id="08" data-title="并发编程"><span class="course-number">08</span><span class="course-name">并发编程</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="09-performance.html" data-lesson-id="09" data-title="性能调优"><span class="course-number">09</span><span class="course-name">性能调优</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="10-stdlib.html" data-lesson-id="10" data-title="常用标准库速查"><span class="course-number">10</span><span class="course-name">常用标准库速查</span><span class="course-check" aria-hidden="true">✓</span></a></nav><a class="code-index-link" href="../../codes/教学/README.md">📎 全部示例代码</a></aside>
+  <main class="lesson-main" id="main-content">
+    <div class="breadcrumbs"><a href="index.html">学习地图</a><span>／</span><span>让代码动起来</span><span>／</span><strong>06</strong></div>
+    <section class="chapter-hero sketch-card">
+      <div class="chapter-kicker"><span class="chapter-sticker">任务 06</span><span>让代码动起来</span><span class="hero-spark" aria-hidden="true">✦</span></div>
+      <h1>06 函数、闭包与 defer</h1>
+      <p class="chapter-lead">学完本篇你将能够：写出规范函数签名、在值传递与引用传递间正确选择、看懂闭包的引用语义、避开 defer 的五个经典坑、写出带缓存复用的签名函数。</p>
+      <div class="chapter-meta"><span>📝 一篇一练</span><span>🧩 小步掌握</span><a href="../06-%E5%87%BD%E6%95%B0%E3%80%81%E9%97%AD%E5%8C%85%E4%B8%8E%20defer.md">查看 Markdown 原稿 ↗</a></div>
+      <svg class="hero-doodle-mini" viewBox="0 0 100 90" aria-hidden="true"><path d="M12 65 Q28 42 41 58 T70 44" fill="none" stroke="#287d68" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M57 28 L77 9 L91 23 L71 43 Z" fill="#ffd46c" stroke="#263238" stroke-width="2.4" stroke-linejoin="round"/><path d="M57 28 L71 43 L67 52 L52 36 Z" fill="#f58a70" stroke="#263238" stroke-width="2.4"/><path d="M52 36 L47 54 L67 52" fill="#fff8e9" stroke="#263238" stroke-width="2.4" stroke-linejoin="round"/><path d="M21 75 Q33 82 42 74" fill="none" stroke="#e78361" stroke-width="2" stroke-linecap="round"/></svg>
+    </section>
+    <section class="memory-note sketch-card" aria-label="记忆提示">
+      <div class="memory-title"><span aria-hidden="true">✎</span> 一句话记住</div>
+      <p class="memory-line">函数先入场，<code>defer</code> 后入先出；defer 的参数先记下，函数返回时再执行。</p>
+      <div class="recall-row"><span class="recall-badge">🧠 30 秒复述</span><span class="recall-question">同一个函数里注册了三个 defer，执行顺序是怎样的？</span><button type="button" class="hint-button" data-action="reveal">翻开提示 ↗</button></div>
+      <p class="recall-answer" hidden>像叠盘子：后放上去的先拿走，也就是 LIFO。</p>
+    </section>
+    <button class="complete-button" type="button" data-action="complete" data-lesson="06"><span class="complete-icon">✓</span><span data-complete-label>我学会了，打个勾</span></button>
+    <article class="markdown-body" id="article">
+      <h2 id="section-01">概述</h2>
+<p>本篇合并了原「函数」和「defer 函数」两篇教程。它们本质是同一个主题：<strong>Go 的函数调用语义</strong>——参数何时求值、结果何时返回、副作用何时发生。</p>
+<hr class="sketch-rule">
+<h2 id="section-02">一、函数定义</h2>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func function_name(input1 type1, input2 type2) (type1, type2) {
+	// 函数体
+	// 返回多个值
+	return value1, value2
+}</code></pre></div>
+<ul class="lesson-list"><li>函数用 <code>func</code> 声明</li><li>函数可以有一个或多个参数，需要有参数类型，用 <code>,</code> 分割</li><li>函数可以有一个或多个返回值，需要有返回值类型，用 <code>,</code> 分割</li><li>函数的参数是可选的，返回值也是可选的</li></ul>
+<h3 id="section-03">命名返回值与裸 return</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func getSum(a, b int) (sum int) {
+	sum = a + b
+	return // 等价于 return sum
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>命名返回值在 Go 中主要是为了配合 <code>defer</code> 修改返回值（第 4 节坑 3），以及文档可读性。</p>
+</blockquote>
+<h3 id="section-04">错误处理惯例</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func divide(a, b float64) (float64, error) {
+	if b == 0 {
+		return 0, fmt.Errorf(&quot;除数不能为 0&quot;)
+	}
+	return a / b, nil
+}
+
+res, err := divide(10, 0)
+if err != nil {
+	fmt.Println(&quot;error:&quot;, err)
+	return
+}
+fmt.Println(res)</code></pre></div>
+<blockquote class="sketch-quote">
+<p>Go 惯例把 <code>error</code> 作为<strong>最后一个返回值</strong>，成功时返回 <code>nil</code>。</p>
+</blockquote>
+<h3 id="section-05">常见工具函数</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// MD5
+func MD5(str string) string {
+	s := md5.New()
+	s.Write([]byte(str))
+	return hex.EncodeToString(s.Sum(nil))
+}
+
+// 获取当前时间字符串
+func getTimeStr() string {
+	return time.Now().Format(&quot;2006-01-02 15:04:05&quot;)
+}
+
+// 获取当前时间戳
+func getTimeInt() int64 {
+	return time.Now().Unix()
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>Go 的时间格式布局是<strong>参考时间</strong> <code>2006-01-02 15:04:05</code>，不是 Java 那套 <code>yyyy-MM-dd</code>。详见第 10 篇。</p>
+</blockquote>
+<h3 id="section-06">实战：生成签名</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s08_sign/main.go
+package main
+
+import (
+	&quot;crypto/md5&quot;
+	&quot;encoding/hex&quot;
+	&quot;fmt&quot;
+	&quot;sort&quot;
+	&quot;strings&quot;
+)
+
+func main() {
+	params := map[string]interface{}{
+		&quot;name&quot;: &quot;Tom&quot;,
+		&quot;pwd&quot;:  &quot;123456&quot;,
+		&quot;age&quot;:  30,
+	}
+	fmt.Printf(&quot;sign : %s\n&quot;, createSign(params, &quot;123456789&quot;))
+}
+
+// MD5 方法
+func MD5(str string) string {
+	s := md5.New()
+	s.Write([]byte(str))
+	return hex.EncodeToString(s.Sum(nil))
+}
+
+// 生成签名
+func createSign(params map[string]interface{}, secret string) string {
+	// 1. 取出所有 key
+	var key []string
+	for k := range params {
+		key = append(key, k)
+	}
+
+	// 2. 排序（map 遍历无序，必须排序）
+	sort.Strings(key)
+
+	// 3. 拼接字符串
+	//    用 strings.Builder：循环里用 + 累加是 O(n²)（每轮分配新串并复制已有内容），
+	//    编译器不会帮你改写成 Builder。
+	//    统一规则 k=v&amp;k=v（原教程的 &quot;xl_&quot; 前缀是某些开放平台的历史约定，此处不保留）。
+	var sb strings.Builder
+	sb.Grow(len(key) * 16) // 预分配，避免多次扩容
+	for i, k := range key {
+		if i &gt; 0 {
+			sb.WriteByte(&#x27;&amp;&#x27;)
+		}
+		fmt.Fprintf(&amp;sb, &quot;%s=%v&quot;, k, params[k])
+	}
+	str := sb.String()
+
+	// 4. 双重 MD5
+	return MD5(MD5(str) + MD5(secret))
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>实际项目可在此基础上增加<strong>时间戳</strong>（满足时效性）和<strong>随机 nonce</strong>（满足唯一性），并从配置文件读取 secret。完整签名四要素见第 09 篇。</p>
+<p>注意第 3 步用了 <code>strings.Builder</code> 而不是 <code>+</code> 累加——这与第 09 篇「不要在循环里用 <code>+</code> 拼字符串」保持一致。示例与文字必须自洽。</p>
+</blockquote>
+<hr class="sketch-rule">
+<h2 id="section-07">二、传值与传指针</h2>
+<p><strong>值传递</strong>：传递参数时，将参数<strong>复制一份</strong>传递到函数中，对参数进行调整后，不影响参数值。</p>
+<p><strong>Go 语言只有值传递</strong>。传指针时复制的也不是"引用"，而是<strong>指针本身这个值</strong>——副本与原指针指向同一块数据，所以能改到原数据。</p>
+<blockquote class="sketch-quote">
+<p>术语约定（贯穿全课程）：不要把 Go 说成"引用传递"。</p>
+<div class="table-wrap"><table><thead><tr><th style="text-align:left">不要用</th><th style="text-align:left">改用</th></tr></thead><tbody><tr><td style="text-align:left">引用传递</td><td style="text-align:left"><strong>传指针</strong></td></tr><tr><td style="text-align:left">引用类型</td><td style="text-align:left"><strong>含指针的值类型</strong>（切片是 <code>{ptr, len, cap}</code> 结构体，map 是指向 hmap 的指针）</td></tr></tbody></table></div>
+</blockquote>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">type Result struct {
+	Code    int    `json:&quot;code&quot;`
+	Message string `json:&quot;msg&quot;`
+}
+
+func setData(res *Result) {
+	res.Code = 500
+	res.Message = &quot;fail&quot;
+}
+
+func toJson(res *Result) {
+	jsons, errs := json.Marshal(res)
+	if errs != nil {
+		fmt.Println(&quot;json marshal error:&quot;, errs)
+	}
+	fmt.Println(&quot;json data :&quot;, string(jsons))
+}
+
+func main() {
+	res := Result{Code: 200, Message: &quot;success&quot;}
+	toJson(&amp;res)
+
+	setData(&amp;res) // 传指针，修改生效
+	toJson(&amp;res)
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p>结构体较大时按值传递会有明显拷贝开销；修改外部变量必须用指针。但<strong>小数据量传指针反而可能更慢</strong>（会触发逃逸，见第 09 篇）。</p>
+</blockquote>
+<p><strong>常见指针写法速查</strong>：</p>
+<div class="table-wrap"><table><thead><tr><th style="text-align:left">需求</th><th style="text-align:left">写法</th><th style="text-align:left">说明</th></tr></thead><tbody><tr><td style="text-align:left">修改结构体字段</td><td style="text-align:left"><code>func f(p *T)</code> + 调用 <code>f(&amp;v)</code></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">修改切片/Map 的<strong>已有元素</strong></td><td style="text-align:left"><code>func f(s []T)</code> / <code>func f(m map[K]V)</code></td><td style="text-align:left">不用传指针，二者内部都含指针，复制的是结构体头</td></tr><tr><td style="text-align:left">修改切片的<strong>长度</strong>（append 扩容后）</td><td style="text-align:left"><strong>返回新切片</strong>：<code>s = f(s)</code>，或 <code>func f(p *[]T)</code></td><td style="text-align:left">⚠️ 扩容后函数内切片头指向新数组，调用方的切片头没变 → <strong>调用方看不到新长度</strong></td></tr><tr><td style="text-align:left">修改基本类型</td><td style="text-align:left"><code>func f(p *int)</code> + 调用 <code>f(&amp;n)</code></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">只读大对象，避免拷贝</td><td style="text-align:left"><code>func f(p *T)</code> 但不修改</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">避免修改外部变量</td><td style="text-align:left"><code>func f(v T)</code> 传值</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<blockquote class="sketch-quote">
+<p>这就是为什么 Go 标准库的 <code>append</code> 要<strong>返回新切片</strong>：<code>s = append(s, x)</code>。它不能原地改长度，只能返回。</p>
+</blockquote>
+<hr class="sketch-rule">
+<h2 id="section-08">三、闭包</h2>
+<p><strong>闭包 = 函数 + 它捕获的外部变量</strong>。当函数内部引用了外层的局部变量时，就形成了闭包。</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func main() {
+	var a = 1
+	var b = 2
+
+	// 闭包捕获的是变量本身，不是值
+	add := func() {
+		fmt.Println(&quot;a+b =&quot;, a+b)
+	}
+
+	a = 3
+	add() // 输出 4，而不是 3
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>结论：闭包获取变量相当于引用传递，而非值传递。</strong></p>
+</blockquote>
+<p>这带来两个实用特性：</p>
+<p><strong>1. 闭包 + 循环变量（Go 1.22 之前必须手动复制）</strong></p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// Go 1.22 之前：所有闭包共享同一个 i，全部输出 3
+for i := 1; i &lt;= 3; i++ {
+	go func() { fmt.Println(i) }()
+}</code></pre></div>
+<p><strong>Go 1.22 起</strong>，<code>for</code> 循环的每轮迭代都有独立变量，此问题自动解决。旧代码需要：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">for i := 1; i &lt;= 3; i++ {
+	i := i // 显式复制
+	go func() { fmt.Println(i) }()
+}</code></pre></div>
+<p><strong>2. 闭包 + defer 构成资源归还模式</strong>（第 7 篇的 Options 模式就用到了）</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">opt := getOption()
+defer func() {
+	releaseOption(opt) // 用完立刻归还
+}()</code></pre></div>
+<p><strong>3. 闭包 + 循环变量做并发任务生成器</strong></p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func newCounter() func() int {
+	i := 0
+	return func() int {
+		i++
+		return i
+	}
+}</code></pre></div>
+<hr class="sketch-rule">
+<h2 id="section-09">四、defer</h2>
+<p>defer 函数大家肯定都用过，它在<strong>声明时不会立刻去执行</strong>，而是在函数 <strong>return 后</strong>去执行。</p>
+<p>主要应用场景：异常处理、记录日志、清理数据、释放资源等等。</p>
+<blockquote class="sketch-quote">
+<p>本节不是分享 defer 的应用场景，而是分享<strong>使用 defer 需要注意的点</strong>。咱们先从一道题开始。</p>
+</blockquote>
+<h3 id="section-10">经典题</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func calc(index string, a, b int) int {
+	ret := a + b
+	fmt.Println(index, a, b, ret)
+	return ret
+}
+
+func main() {
+	x := 1
+	y := 2
+	defer calc(&quot;A&quot;, x, calc(&quot;B&quot;, x, y))
+	x = 3
+	defer calc(&quot;C&quot;, x, calc(&quot;D&quot;, x, y))
+	y = 4
+}</code></pre></div>
+<p>输出什么？答案在最后一节，先往下看。</p>
+<h3 id="section-11">坑 1：执行顺序是 LIFO（后进先出）</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func main() {
+	defer fmt.Println(&quot;1&quot;)
+	defer fmt.Println(&quot;2&quot;)
+	defer fmt.Println(&quot;3&quot;)
+
+	fmt.Println(&quot;main&quot;)
+}</code></pre></div>
+<p>输出：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">代码片段</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-text">main
+3
+2
+1</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>结论</strong>：defer 函数定义的顺序与实际执行的顺序是相反的，也就是<strong>最先声明的最后才执行</strong>。</p>
+</blockquote>
+<h3 id="section-12">坑 2：闭包 vs 传参</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">var a = 1
+var b = 2
+
+defer fmt.Println(a + b) // 参数在 defer 时就确定了
+a = 2
+fmt.Println(&quot;main&quot;)
+// 输出：main 3</code></pre></div>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">var a = 1
+var b = 2
+
+defer func() {
+	fmt.Println(a + b) // 函数体内变量在执行时才确定
+}()
+a = 2
+fmt.Println(&quot;main&quot;)
+// 输出：main 4</code></pre></div>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">var a = 1
+var b = 2
+
+defer func(a int, b int) {
+	fmt.Println(a + b) // 显式传参 → 值复制
+}(a, b)
+a = 2
+fmt.Println(&quot;main&quot;)
+// 输出：main 3</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>结论</strong>：</p>
+<ul class="lesson-list"><li><code>defer fmt.Println(a+b)</code> → 参数值在 <strong>defer 定义时</strong>就确定了</li><li><code>defer func() { ... }()</code> → 函数内变量值在<strong>函数运行时</strong>才确定（闭包引用传递）</li><li><code>defer func(a, b int) { ... }(a, b)</code> → 传参是<strong>值复制</strong></li></ul>
+<p>这条规则来自第 02 篇：<code>:=</code> 声明的变量只在当前作用域内可见，而 defer 语句会立即求值它的参数。</p>
+</blockquote>
+<h3 id="section-13">坑 3：Return 不是原子操作</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func t1() int {
+	a := 1
+	defer func() { a++ }()
+	return a
+}
+// 输出：1</code></pre></div>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func t2() (a int) {
+	defer func() { a++ }()
+	return 1
+}
+// 输出：2</code></pre></div>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func t3() (b int) {
+	a := 1
+	defer func() { a++ }() // 修改的不是返回值 b
+	return 1
+}
+// 输出：1</code></pre></div>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func t4() (a int) {
+	defer func(a int) { a++ }(a) // 值传递，改的是副本
+	return 1
+}
+// 输出：1</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>结论</strong>：<code>return</code> 不是原子操作。</p>
+<p><code>return a</code> 实际展开为三步：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">代码片段</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-text">1. ret = a         // 赋值给返回值变量
+2. 执行所有 defer  // defer 可以修改它
+3. return           // 真正返回</code></pre></div>
+<p>只有<strong>命名返回值</strong>才能被 defer 修改（t2）。t1 之所以是 1，是因为 <code>return a</code> 中的 <code>a</code> 是普通局部变量；t3 的返回值叫 <code>b</code>，defer 改的 <code>a</code> 与它无关。</p>
+</blockquote>
+<h3 id="section-14">坑 4：os.Exit 不执行 defer</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func main() {
+	defer fmt.Println(&quot;1&quot;)
+	fmt.Println(&quot;main&quot;)
+	os.Exit(0)
+}
+// 输出：main</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>结论</strong>：当 <code>os.Exit()</code> 方法退出程序时，defer 不会被执行。</p>
+<p>这意味着 defer 里的资源释放、日志落盘、事务回滚<strong>全部失效</strong>。生产代码中 <code>os.Exit</code> 应尽量避免，或把所有清理逻辑放进显式调用的函数里。</p>
+</blockquote>
+<h3 id="section-15">坑 5：defer 只对当前协程有效</h3>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func main() {
+	GoA()
+	time.Sleep(1 * time.Second)
+	fmt.Println(&quot;main&quot;)
+}
+
+func GoA() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(&quot;panic:&quot; + fmt.Sprintf(&quot;%s&quot;, err))
+		}
+	}()
+
+	go GoB()
+}
+
+func GoB() {
+	panic(&quot;error&quot;)
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p><code>GoB()</code> 的 panic <strong>捕获不到</strong>。</p>
+<p><strong>结论</strong>：defer（含 <code>recover</code>）只对<strong>当前协程</strong>有效。<strong>每个 goroutine 都要自己写 <code>recover</code></strong>，主 goroutine 的 recover 管不到子 goroutine。</p>
+<p>这个问题怎么解？咱们下回再说（见第 08 篇的并发安全 checklist）。</p>
+</blockquote>
+<h3 id="section-16">答案解析</h3>
+<p>先列出答案：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">代码片段</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-text">B 1 2 3
+D 3 2 5
+C 3 5 8
+A 1 3 4</code></pre></div>
+<p>其实上面那道题，可以拆解为：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func main() {
+	x := 1
+	y := 2
+	tmp1 := calc(&quot;B&quot;, x, y) // 立即执行
+	defer calc(&quot;A&quot;, x, tmp1)
+	x = 3
+	tmp2 := calc(&quot;D&quot;, x, y) // 立即执行
+	defer calc(&quot;C&quot;, x, tmp2)
+	y = 4
+}</code></pre></div>
+<p>所以顺序就是 <strong>B → D → C → A</strong>：</p>
+<ul class="lesson-list"><li>执行到 <code>tmp1</code> 时，输出：<code>B 1 2 3</code></li><li>执行到 <code>tmp2</code> 时，输出：<code>D 3 2 5</code></li><li>根据 defer 执行顺序原则（先声明的后执行），下一个该执行 C 了。又因为<strong>传参是值赋值</strong>，所以 C 拿不到 <code>y = 4</code>，输出：<code>C 3 5 8</code></li><li>然后执行 A。A 同时拿不到 <code>x = 3</code> 和 <code>y = 4</code>，输出：<code>A 1 3 4</code></li></ul>
+<p>到这，基本上 defer 就清楚了，大家可以根据自己的理解去记忆。</p>
+<hr class="sketch-rule">
+<h2 id="section-17">五、defer 的正确用法</h2>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// 资源释放的标准写法
+func handle(name string) error {
+	f, err := os.Open(name)
+	if err != nil {
+		return err
+	}
+	defer f.Close() // 立即注册，后续任何 return 都会执行
+
+	// 业务逻辑...
+	return nil
+}
+
+// 配合对象池（第 09 篇）
+stu := student.New(&quot;tom&quot;, 30)
+defer student.Release(stu)
+
+// 配合锁
+mu.Lock()
+defer mu.Unlock() // 保证解锁一定执行</code></pre></div>
+<h3 id="section-18">循环内 defer 的坑</h3>
+<p><code>for</code> 循环里的 defer 会在<strong>函数结束时</strong>才全部执行，而不是每轮迭代执行：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// ❌ 错误：10 次循环会累积 10 个锁，直到函数结束才释放
+for _, v := range items {
+	mu.Lock()
+	defer mu.Unlock()
+	handle(v)
+}</code></pre></div>
+<p>需要每轮释放时，把它包成函数：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// ✅ 正确
+for _, v := range items {
+	func() {
+		mu.Lock()
+		defer mu.Unlock()
+		handle(v)
+	}()
+}</code></pre></div>
+<p>或把循环体抽成独立函数：</p>
+<div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">func process(v Item) {
+	mu.Lock()
+	defer mu.Unlock()
+	handle(v)
+}
+
+for _, v := range items {
+	process(v)
+}</code></pre></div>
+<blockquote class="sketch-quote">
+<p><strong>defer 的性能</strong>：Go 1.14 起 defer 实现了 <strong>open-coded defer</strong>，开销已降低到接近普通函数调用（原文基于 Go 1.12 时代，defer 开销较大，现代 Go 已不构成瓶颈）。但仍<strong>不要在每秒百万次调用的热路径中使用 defer</strong>。</p>
+</blockquote>
+<h2 id="section-19">本篇要点</h2>
+<ol class="lesson-list"><li>Go 默认值传递；修改结构体/大对象要传指针，但小对象传指针可能因逃逸更慢。</li><li>闭包捕获的是<strong>变量本身</strong>而非值。</li><li>defer <strong>LIFO</strong> 执行。</li><li>defer 的<strong>参数在定义时求值</strong>（值复制）；defer <strong>函数体里的变量在执行时求值</strong>。</li><li><code>return</code> 不是原子操作，只有<strong>命名返回值</strong>能被 defer 修改。</li><li><code>os.Exit()</code> 不执行 defer——生产代码要格外小心。</li><li><strong>defer 只对当前协程有效，每个 goroutine 都要自己 <code>recover()</code>。</strong></li><li>循环内 defer 要包成函数才会每轮执行。</li><li>Go 1.14+ 的 open-coded defer 开销已很小，但热路径仍应避免。</li></ol>
+    </article>
+    <section class="code-library" id="companion-code"><div class="section-stamp">🧰 本章工具箱</div><h2>配套源码（已嵌入）</h2><p class="code-library-intro">下面的源码来自仓库中的 <code>codes/教学</code>，展开即可复制；页面不需要联网加载代码。</p><section class="code-group"><h3>函数、闭包与错误处理</h3><div class="run-command"><span aria-hidden="true">▶</span><code>cd 00-基础语法/codes/教学 &amp;&amp; go run ./s08_func</code></div><details class="source-file"><summary><span class="source-path">s08_func/main.go</span><span class="source-open">展开源码 <b>＋</b></span></summary><div class="source-actions"><a href="../../codes/教学/s08_func/main.go" download>下载原文件 ↗</a><span>代码已嵌入本页，可离线查看</span></div><div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s08_func/main.go —— 对应教学文稿 06 函数、闭包与 defer（一 ~ 三）
+//
+// 运行：go run ./s08_func
+package main
+
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
+
+type Result struct {
+	Code    int
+	Message string
+}
+
+// 值传递：复制一份，改动不影响外部
+func setDataByValue(res Result) {
+	res.Code = 500
+}
+
+// 引用传递：传地址，改动生效
+func setDataByPtr(res *Result) {
+	res.Code = 500
+}
+
+// 命名返回值 + 裸 return
+func getSum(a, b int) (sum int) {
+	sum = a + b
+	return
+}
+
+// 错误处理惯例：error 作为最后一个返回值
+func divide(a, b float64) (float64, error) {
+	if b == 0 {
+		return 0, fmt.Errorf(&quot;除数不能为 0&quot;)
+	}
+	return a / b, nil
+}
+
+// 不定参数传递
+func Add(a int, args ...int) (result int) {
+	result += a
+	for _, arg := range args {
+		result += arg
+	}
+	return
+}
+
+func sum(nums ...int) int {
+	s := 0
+	for _, n := range nums {
+		s += n
+	}
+	return s
+}
+
+func main() {
+	// ==================== 值传递 vs 引用传递 ====================
+	fmt.Println(&quot;--- 传参 ---&quot;)
+	res := Result{Code: 200, Message: &quot;success&quot;}
+	setDataByValue(res)
+	fmt.Println(&quot;传值后：&quot;, res) // 200，未改变
+
+	setDataByPtr(&amp;res)
+	fmt.Println(&quot;传址后：&quot;, res) // 500，已改变
+
+	// ==================== 命名返回值 ====================
+	fmt.Println(&quot;\n--- 命名返回值 ---&quot;)
+	fmt.Println(&quot;getSum(1, 2) =&quot;, getSum(1, 2))
+
+	// ==================== 错误处理 ====================
+	fmt.Println(&quot;\n--- 错误处理 ---&quot;)
+	r, err := divide(10, 0)
+	if err != nil {
+		fmt.Println(&quot;error:&quot;, err)
+		return
+	}
+	fmt.Println(r)
+
+	// ==================== 不定参数 ====================
+	fmt.Println(&quot;\n--- 不定参数 ---&quot;)
+	fmt.Println(&quot;Add(1, 2, 3) =&quot;, Add(1, 2, 3))
+	fmt.Println(&quot;Add(1) =&quot;, Add(1))
+	fmt.Println(&quot;sum(1, 2, 3) =&quot;, sum(1, 2, 3))
+	nums := []int{1, 2, 3}
+	fmt.Println(&quot;sum(nums...) =&quot;, sum(nums...)) // 已有切片用 ... 展开传
+
+	// 匿名函数接收不定参数
+	f := func(prefix string, args ...interface{}) {
+		fmt.Println(append([]interface{}{prefix}, args...)...)
+	}
+	f(&quot;参数：&quot;, 1, &quot;a&quot;, true)
+
+	// ==================== 闭包 ====================
+	fmt.Println(&quot;\n--- 闭包 ---&quot;)
+	var a = 1
+	var b = 2
+	add := func() {
+		fmt.Println(&quot;a+b =&quot;, a+b)
+	}
+	a = 3
+	add() // 输出 4，而不是 3 —— 闭包捕获的是变量本身
+
+	// 闭包 + 计数器
+	newCounter := func() func() int {
+		i := 0
+		return func() int {
+			i++
+			return i
+		}
+	}
+	c := newCounter()
+	fmt.Println(c(), c(), c())
+
+	// ==================== 工具函数 ====================
+	fmt.Println(&quot;\n--- 工具函数 ---&quot;)
+	fmt.Println(&quot;当前时间：&quot;, time.Now().Format(&quot;2006-01-02 15:04:05&quot;))
+	fmt.Println(&quot;时间戳：&quot;, time.Now().Unix())
+}</code></pre></div></details></section><section class="code-group"><h3>defer 经典题与资源释放</h3><div class="run-command"><span aria-hidden="true">▶</span><code>cd 00-基础语法/codes/教学 &amp;&amp; go run ./s08_defer</code></div><details class="source-file"><summary><span class="source-path">s08_defer/main.go</span><span class="source-open">展开源码 <b>＋</b></span></summary><div class="source-actions"><a href="../../codes/教学/s08_defer/main.go" download>下载原文件 ↗</a><span>代码已嵌入本页，可离线查看</span></div><div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s08_defer/main.go —— 对应教学文稿 06 函数、闭包与 defer（四）defer 的五个坑
+//
+// 运行：go run ./s08_defer
+package main
+
+import (
+	&quot;fmt&quot;
+	&quot;os&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
+
+func calc(index string, a, b int) int {
+	ret := a + b
+	fmt.Println(index, a, b, ret)
+	return ret
+}
+
+// ============ 经典题 ============
+
+func quiz() {
+	x := 1
+	y := 2
+	defer calc(&quot;A&quot;, x, calc(&quot;B&quot;, x, y))
+	x = 3
+	defer calc(&quot;C&quot;, x, calc(&quot;D&quot;, x, y))
+	y = 4
+}
+
+// ============ 坑 1：执行顺序是 LIFO ============
+
+func pitfallLIFO() {
+	defer fmt.Println(&quot;1&quot;)
+	defer fmt.Println(&quot;2&quot;)
+	defer fmt.Println(&quot;3&quot;)
+
+	fmt.Println(&quot;main&quot;)
+}
+
+// ============ 坑 2：闭包 vs 传参 ============
+
+func pitfallClosure() {
+	fmt.Println(&quot;--- defer fmt.Println(a+b) ---&quot;)
+	{
+		var a = 1
+		var b = 2
+		defer fmt.Println(a + b) // 参数在 defer 时就确定了
+		a = 2
+		fmt.Println(&quot;main&quot;)
+	}
+
+	fmt.Println(&quot;--- defer func(){...}() ---&quot;)
+	{
+		var a = 1
+		var b = 2
+		defer func() {
+			fmt.Println(a + b) // 函数体内变量在执行时才确定
+		}()
+		a = 2
+		fmt.Println(&quot;main&quot;)
+	}
+
+	fmt.Println(&quot;--- defer func(a,b){...}(a,b) ---&quot;)
+	{
+		var a = 1
+		var b = 2
+		defer func(a int, b int) {
+			fmt.Println(a + b) // 显式传参 → 值复制
+		}(a, b)
+		a = 2
+		fmt.Println(&quot;main&quot;)
+	}
+}
+
+// ============ 坑 3：Return 不是原子操作 ============
+
+func t1() int {
+	a := 1
+	defer func() { a++ }()
+	return a // 输出 1
+}
+
+func t2() (a int) {
+	defer func() { a++ }()
+	return 1 // 输出 2
+}
+
+func t3() (b int) {
+	a := 1
+	defer func() { a++ }() // 修改的不是返回值 b
+	return 1               // 输出 1
+}
+
+func t4() (a int) {
+	defer func(a int) { a++ }(a) // 值传递，改的是副本
+	return 1                     // 输出 1
+}
+
+// ============ 坑 4：os.Exit 不执行 defer ============
+
+func pitfallExit() {
+	defer fmt.Println(&quot;1&quot;)
+	fmt.Println(&quot;main&quot;)
+	_ = os.Exit // 取消注释 os.Exit(0) 可看到 defer 不会执行
+}
+
+// ============ 坑 5：defer 只对当前协程有效 ============
+
+func GoA() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(&quot;GoA panic:&quot; + fmt.Sprintf(&quot;%s&quot;, err))
+		}
+	}()
+	go GoB()
+}
+
+func GoB() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(&quot;GoB panic:&quot; + fmt.Sprintf(&quot;%s&quot;, err)) // GoB 自己的 recover 才能捕获
+		}
+	}()
+	panic(&quot;error&quot;)
+}
+
+// ============ 正确用法：资源释放 / 锁 / 对象池 ============
+
+type SafeMap struct {
+	mu sync.RWMutex
+	m  map[string]int
+}
+
+func (s *SafeMap) Set(k string, v int) {
+	s.mu.Lock()
+	defer s.mu.Unlock() // 保证解锁一定执行
+	s.m[k] = v
+}
+
+func (s *SafeMap) Get(k string) (int, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	v, ok := s.m[k]
+	return v, ok
+}
+
+// ============ 循环内 defer 的坑 ============
+
+func loopDefer() {
+	items := []int{1, 2, 3}
+	fmt.Println(&quot;--- 正确：包成函数，每轮立即释放 ---&quot;)
+	for _, v := range items {
+		func() {
+			defer fmt.Println(&quot;defer in loop:&quot;, v)
+			fmt.Println(&quot;handle:&quot;, v)
+		}()
+	}
+}
+
+func main() {
+	fmt.Println(&quot;=== 经典题 ===&quot;)
+	quiz()
+
+	fmt.Println(&quot;\n=== 坑 1：LIFO ===&quot;)
+	pitfallLIFO()
+
+	fmt.Println(&quot;\n=== 坑 2：闭包 vs 传参 ===&quot;)
+	pitfallClosure()
+
+	fmt.Println(&quot;\n=== 坑 3：Return 非原子 ===&quot;)
+	fmt.Println(&quot;t1 =&quot;, t1())
+	fmt.Println(&quot;t2 =&quot;, t2())
+	fmt.Println(&quot;t3 =&quot;, t3())
+	fmt.Println(&quot;t4 =&quot;, t4())
+
+	fmt.Println(&quot;\n=== 坑 4：os.Exit ===&quot;)
+	pitfallExit()
+
+	fmt.Println(&quot;\n=== 坑 5：只对当前协程有效 ===&quot;)
+	GoA()
+	time.Sleep(1 * time.Second)
+
+	fmt.Println(&quot;\n=== 正确用法 ===&quot;)
+	sm := &amp;SafeMap{m: make(map[string]int)}
+	sm.Set(&quot;a&quot;, 1)
+	v, ok := sm.Get(&quot;a&quot;)
+	fmt.Println(&quot;SafeMap.Get(a) =&quot;, v, ok)
+
+	loopDefer()
+
+	fmt.Println(&quot;\n=== 答案解析 ===&quot;)
+	fmt.Println(&quot;经典题输出顺序：B D C A&quot;)
+	fmt.Println(&quot;B 1 2 3 / D 3 2 5 / C 3 5 8 / A 1 3 4&quot;)
+	fmt.Println(&quot;原因：defer LIFO 执行，且参数在 defer 定义时求值（值复制）&quot;)
+}</code></pre></div></details></section><section class="code-group"><h3>签名函数小实战</h3><div class="run-command"><span aria-hidden="true">▶</span><code>cd 00-基础语法/codes/教学 &amp;&amp; go run ./s08_sign</code></div><details class="source-file"><summary><span class="source-path">s08_sign/main.go</span><span class="source-open">展开源码 <b>＋</b></span></summary><div class="source-actions"><a href="../../codes/教学/s08_sign/main.go" download>下载原文件 ↗</a><span>代码已嵌入本页，可离线查看</span></div><div class="code-card"><div class="code-toolbar"><span class="code-language">GO</span><button class="copy-code" type="button" aria-label="复制代码">复制</button></div><pre><code class="language-go">// s08_sign/main.go —— 对应教学文稿 06 函数、闭包与 defer（四）实战：生成签名
+//
+// 运行：go run ./s08_sign
+package main
+
+import (
+	&quot;crypto/md5&quot;
+	&quot;encoding/hex&quot;
+	&quot;fmt&quot;
+	&quot;sort&quot;
+	&quot;strings&quot;
+)
+
+// MD5 方法
+func MD5(str string) string {
+	s := md5.New()
+	s.Write([]byte(str))
+	return hex.EncodeToString(s.Sum(nil))
+}
+
+// 生成签名
+//
+// 签名四要素（详见第 09 篇）：
+//   - 可变性：每次签名不同
+//   - 时效性：带时间戳，过期作废
+//   - 唯一性：带随机 nonce
+//   - 完整性：MD5 摘要防篡改
+//
+// 此示例实现了「唯一性 + 完整性」，生产环境请补齐时效性。
+func createSign(params map[string]interface{}, secret string) string {
+	// 1. 取出所有 key
+	var key []string
+	for k := range params {
+		key = append(key, k)
+	}
+
+	// 2. 排序（map 遍历无序，必须排序）
+	sort.Strings(key)
+
+	// 3. 拼接字符串
+	//    用 strings.Builder：循环里用 + 累加是 O(n²)（每轮分配新串并复制已有内容），
+	//    编译器不会帮你改写成 Builder。
+	//    统一规则 k=v&amp;k=v（原教程的 &quot;xl_&quot; 前缀是某些开放平台的历史约定，此处不保留）。
+	var sb strings.Builder
+	sb.Grow(len(key) * 16) // 预分配，避免多次扩容
+	for i, k := range key {
+		if i &gt; 0 {
+			sb.WriteByte(&#x27;&amp;&#x27;)
+		}
+		fmt.Fprintf(&amp;sb, &quot;%s=%v&quot;, k, params[k])
+	}
+	str := sb.String()
+
+	// 4. 双重 MD5
+	return MD5(MD5(str) + MD5(secret))
+}
+
+func main() {
+	params := map[string]interface{}{
+		&quot;name&quot;: &quot;Tom&quot;,
+		&quot;pwd&quot;:  &quot;123456&quot;,
+		&quot;age&quot;:  30,
+	}
+	fmt.Printf(&quot;sign : %s\n&quot;, createSign(params, &quot;123456789&quot;))
+
+	// 同样参数、同样 secret，签名固定（可被重放）
+	fmt.Printf(&quot;sign : %s\n&quot;, createSign(params, &quot;123456789&quot;))
+
+	// secret 不同，签名不同
+	fmt.Printf(&quot;sign : %s\n&quot;, createSign(params, &quot;other-secret&quot;))
+}</code></pre></div></details></section><a class="repo-code-link" href="../../codes/教学/README.md">看完整代码目录与运行说明 ↗</a></section>
+    <nav class="lesson-pager" aria-label="篇章翻页"><a class="previous-lesson" href="05-control-flow.html"><span>← 上一篇</span><strong>05 循环与流程控制</strong></a><a class="next-lesson" href="07-interfaces.html"><span>下一站 →</span><strong>07 接口与 Options 模式</strong></a></nav>
+    <footer class="page-footer"><span>✿ 边看边敲，比只看更牢。</span><span>源稿：<a href="../06-%E5%87%BD%E6%95%B0%E3%80%81%E9%97%AD%E5%8C%85%E4%B8%8E%20defer.md">06-函数、闭包与 defer.md</a></span></footer>
+  </main>
+  <aside class="toc-col" aria-label="本页导航"><div class="toc-card sketch-card"><div class="toc-title">本页小地图 <span>⌁</span></div><nav id="toc-nav"><ul class="toc-list"><li class=""><a href="#section-01">概述</a></li><li class=""><a href="#section-02">一、函数定义</a></li><li class="toc-sub"><a href="#section-03">命名返回值与裸 return</a></li><li class="toc-sub"><a href="#section-04">错误处理惯例</a></li><li class="toc-sub"><a href="#section-05">常见工具函数</a></li><li class="toc-sub"><a href="#section-06">实战：生成签名</a></li><li class=""><a href="#section-07">二、传值与传指针</a></li><li class=""><a href="#section-08">三、闭包</a></li><li class=""><a href="#section-09">四、defer</a></li><li class="toc-sub"><a href="#section-10">经典题</a></li><li class="toc-sub"><a href="#section-11">坑 1：执行顺序是 LIFO（后进先出）</a></li><li class="toc-sub"><a href="#section-12">坑 2：闭包 vs 传参</a></li><li class="toc-sub"><a href="#section-13">坑 3：Return 不是原子操作</a></li><li class="toc-sub"><a href="#section-14">坑 4：os.Exit 不执行 defer</a></li><li class="toc-sub"><a href="#section-15">坑 5：defer 只对当前协程有效</a></li><li class="toc-sub"><a href="#section-16">答案解析</a></li><li class=""><a href="#section-17">五、defer 的正确用法</a></li><li class="toc-sub"><a href="#section-18">循环内 defer 的坑</a></li><li class=""><a href="#section-19">本篇要点</a></li></ul></nav><div class="toc-tip">读完一小节，就自己讲一遍。<span>↙</span></div></div></aside>
+</div>
+<div class="mobile-scrim" data-action="close-menu" aria-hidden="true"></div>
+<script src="assets/app.js" defer></script>
+</body>
+</html>

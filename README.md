@@ -11,6 +11,7 @@ Go 入门的学习笔记，从零开始学 Go，做一个 Go 工程师。
 ## 文档指引
 
 - [基础语法 - MD文档](https://github.com/xinliangnote/Go/blob/master/00-基础语法)
+- [Go 入门 - 手绘 HTML 学习站（含可复制示例代码）](00-基础语法/教学文稿/html/index.html)
 - [基础语法 - Demo](https://github.com/xinliangnote/Go/blob/master/00-基础语法/codes)
 - [gRPC - Hello World](https://github.com/xinliangnote/Go/blob/master/02-Go%20gRPC/codes/01-gRPC%20Hello%20World)
 - :star: [练手项目 - 基于 gin 封装](https://github.com/xinliangnote/go-gin-api)
