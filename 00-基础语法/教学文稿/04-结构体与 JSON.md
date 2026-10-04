@@ -48,7 +48,7 @@ func main() {
 
 - 字段名**首字母大写导出**（`Name`），小写私有（`name`）
 - 字段可以任意类型，包括数组、切片、map、其他结构体
-- 零值可用：`p1` 打印为 `{  0}`
+- 零值演示（须在赋值**之前**打印）：`fmt.Printf("%+v\n", Person{})` 输出 `{Name: Age:0}`
 
 ### 嵌套与比较
 
@@ -149,9 +149,14 @@ type Result struct {
 |---|---|
 | `json:"name"` | 字段名映射 |
 | `json:"name,omitempty"` | 为零值时省略该字段 |
-| `json:"-"` | 该字段不参与序列化（只用于反序列化） |
+| `json:"-"` | 该字段**完全不参与 JSON**（Marshal 与 Unmarshal 双向都跳过） |
+| `json:"-,"` | 字段名就叫 `-`（带逗号才生效，否则被当作上面的忽略标记） |
 | `json:",string"` | 数值以字符串形式输出 |
 | `json:"name,string,omitempty"` | 组合使用 |
+
+> ⚠️ 常见误区：`json:"-"` 并不是「只用于反序列化」。官方文档明确：
+> "if the field tag is `-`, the field is always omitted. Note that a field with name `-` can still be generated using the tag `- ,`"（即 `json:"-,"`）。
+> 想做「序列化时输出、反序列化时忽略」（常见于密码字段），需要**另定义一个不tag该字段的接收结构体**，或实现 `json.Unmarshaler` 接口。
 
 > tag 是**反射**机制：Marshal/Unmarshal 通过 `reflect` 读取 tag 来决定字段映射关系。
 
@@ -404,7 +409,20 @@ fmt.Println(result)
 
 是因为当 `JSON` 中存在一个比较大的数字时，它会被解析成 `float64` 类型，就有可能会出现科学计数法的形式。
 
-> `float64` 只有 53 位有效精度（约 16 位十进制），超过 15 位的整数（雪花 ID 如 `1759482245000000`）即使不显示为科学计数法，**精度也会丢失**。
+> 这里要**区分两个不同的问题**，成因不同、必须分开理解：
+>
+> **① 显示问题（值没变）**：`float64` 经 `%v` 输出时，有效位 ≥ 7 位就切换成科学计数法。`1234567` 显示为 `1.234567e+06`，但数值本身是精确的——`float64(1234567)` 与 `1234567` 相等。
+>
+> **② 精度问题（值真的变了）**：`float64` 只有 53 位尾数，能**精确表示**的整数范围是 `±2^53`（`9007199254740992`，约 9.0e15）。**整数绝对值超过 2^53 才会真正丢精度**。
+>
+> ```go
+> // 可实机验证
+> fmt.Println(float64(1234567) == 1234567)                 // true —— 只是显示成科学计数法
+> fmt.Println(float64(1759482245000000))                   // 1.759482245e+15 —— 仍精确（< 2^53）
+> fmt.Println(float64(7300000000000000001) == 7300000000000000001) // false —— 19 位雪花 ID，真丢精度
+> ```
+>
+> 典型的精度受害者是 **19 位雪花 ID**（如 `7300000000000000001`）、超过 2^53 的纳秒级计算结果。两个问题的解法相同（别用 `map[string]interface{}` 接 ID），但成因不同。
 
 ### 4. 问题的解决方案
 
@@ -505,6 +523,6 @@ fmt.Println(fmt.Sprintf("value: %v, type: %v", numStr, reflect.TypeOf(numStr)))
 3. `json` tag 通过**反射**生效，字段名映射、omitempty、`-` 排除都靠它。
 4. 解析策略：**明确用 struct** → **类型不定用 `WeakDecode`** → **字段不定用 `,squash`** → **完全不固定用 `map` + `UseNumber`**。
 5. 用 mapstructure 时 tag 写 `mapstructure:"..."`。
-6. **`json.Unmarshal` 到 `interface{}` 时数字一律变 `float64`**，大数变科学计数法且精度丢失。三种解法：强转 / 定义 struct / `UseNumber()`。
+6. **`json.Unmarshal` 到 `interface{}` 时数字一律变 `float64`**。有效位 ≥ 7 位就显示为科学计数法；**整数绝对值超过 2^53（9007199254740992）才真正丢精度**。三种解法：强转 / 定义 struct / `UseNumber()`。
 7. `UseNumber()` 后的数字是 `json.Number`（底层是 string），必须显式转 `Int64()` / `Float64()`。
 8. 字段固定用 struct，字段动态才用 map（性能原因见第 09 篇）。

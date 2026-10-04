@@ -36,8 +36,8 @@ type Location struct {
 }
 
 type Person struct {
-	Family          // JSON 中 LastName 是顶层字段
-	Location        // JSON 中 City 是顶层字段
+	Family    // JSON 中 LastName 是顶层字段
+	Location  // JSON 中 City 是顶层字段
 	FirstName string
 }
 

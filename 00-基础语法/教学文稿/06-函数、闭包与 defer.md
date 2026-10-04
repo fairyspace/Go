@@ -88,6 +88,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"strings"
 )
 
 func main() {
@@ -96,7 +97,7 @@ func main() {
 		"pwd":  "123456",
 		"age":  30,
 	}
-	fmt.Printf("sign : %s\n", createSign(params))
+	fmt.Printf("sign : %s\n", createSign(params, "123456789"))
 }
 
 // MD5 方法
@@ -107,7 +108,7 @@ func MD5(str string) string {
 }
 
 // 生成签名
-func createSign(params map[string]interface{}) string {
+func createSign(params map[string]interface{}, secret string) string {
 	// 1. 取出所有 key
 	var key []string
 	for k := range params {
@@ -118,36 +119,41 @@ func createSign(params map[string]interface{}) string {
 	sort.Strings(key)
 
 	// 3. 拼接字符串
-	var str = ""
-	for i := 0; i < len(key); i++ {
-		if i == 0 {
-			str = fmt.Sprintf("%v=%v", key[i], params[key[i]])
-		} else {
-			str = str + fmt.Sprintf("&xl_%v=%v", key[i], params[key[i]])
+	//    用 strings.Builder：循环里用 + 累加是 O(n²)（每轮分配新串并复制已有内容），
+	//    编译器不会帮你改写成 Builder。
+	//    统一规则 k=v&k=v（原教程的 "xl_" 前缀是某些开放平台的历史约定，此处不保留）。
+	var sb strings.Builder
+	sb.Grow(len(key) * 16) // 预分配，避免多次扩容
+	for i, k := range key {
+		if i > 0 {
+			sb.WriteByte('&')
 		}
+		fmt.Fprintf(&sb, "%s=%v", k, params[k])
 	}
+	str := sb.String()
 
-	// 4. 自定义密钥
-	var secret = "123456789"
-
-	// 5. 双重 MD5
+	// 4. 双重 MD5
 	return MD5(MD5(str) + MD5(secret))
 }
 ```
 
 > 实际项目可在此基础上增加**时间戳**（满足时效性）和**随机 nonce**（满足唯一性），并从配置文件读取 secret。完整签名四要素见第 09 篇。
 >
-> ⚠️ 拼接大量字符串时不要用 `+`，原因见第 09 篇；MD5/AES 等各算法的性能数据也见第 09 篇。
+> 注意第 3 步用了 `strings.Builder` 而不是 `+` 累加——这与第 09 篇「不要在循环里用 `+` 拼字符串」保持一致。示例与文字必须自洽。
 
 ---
 
-## 二、值传递与引用传递
+## 二、传值与传指针
 
 **值传递**：传递参数时，将参数**复制一份**传递到函数中，对参数进行调整后，不影响参数值。
 
-**Go 语言默认是值传递。**
+**Go 语言只有值传递**。传指针时复制的也不是"引用"，而是**指针本身这个值**——副本与原指针指向同一块数据，所以能改到原数据。
 
-**引用传递**：传递参数时，将参数的**地址**传递到函数中，对参数进行调整后，影响参数值。
+> 术语约定（贯穿全课程）：不要把 Go 说成"引用传递"。
+> | 不要用 | 改用 |
+> |---|---|
+> | 引用传递 | **传指针** |
+> | 引用类型 | **含指针的值类型**（切片是 `{ptr, len, cap}` 结构体，map 是指向 hmap 的指针） |
 
 ```go
 type Result struct {
@@ -181,13 +187,16 @@ func main() {
 
 **常见指针写法速查**：
 
-| 需求 | 写法 |
-|---|---|
-| 修改结构体字段 | `func f(p *T)` + 调用 `f(&v)` |
-| 修改切片/Map | 不用传指针（切片含指针，Map 是引用类型） |
-| 修改基本类型 | `func f(p *int)` + 调用 `f(&n)` |
-| 只读大对象，避免拷贝 | `func f(p *T)` 但不修改 |
-| 避免修改外部变量 | `func f(v T)` 传值 |
+| 需求 | 写法 | 说明 |
+|---|---|---|
+| 修改结构体字段 | `func f(p *T)` + 调用 `f(&v)` | — |
+| 修改切片/Map 的**已有元素** | `func f(s []T)` / `func f(m map[K]V)` | 不用传指针，二者内部都含指针，复制的是结构体头 |
+| 修改切片的**长度**（append 扩容后） | **返回新切片**：`s = f(s)`，或 `func f(p *[]T)` | ⚠️ 扩容后函数内切片头指向新数组，调用方的切片头没变 → **调用方看不到新长度** |
+| 修改基本类型 | `func f(p *int)` + 调用 `f(&n)` | — |
+| 只读大对象，避免拷贝 | `func f(p *T)` 但不修改 | — |
+| 避免修改外部变量 | `func f(v T)` 传值 | — |
+
+> 这就是为什么 Go 标准库的 `append` 要**返回新切片**：`s = append(s, x)`。它不能原地改长度，只能返回。
 
 ---
 

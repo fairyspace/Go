@@ -30,9 +30,12 @@ func (m *md5Enc) Encrypt(str string) string {
 
 // ---------- AES ----------
 
+// aesEnc 演示「缓存重量级对象」的正确写法：
+// cipher.Block 的创建（密钥扩展）成本较高，应缓存复用（并发安全）；
+// 而 CBC 模式对象（CBCEncrypter/CBCDecrypter）有内部游标状态，每次必须新建。
 type aesEnc struct {
-	key []byte
-	iv  []byte
+	block cipher.Block // 缓存，NewCipher 只调用一次
+	iv    []byte
 }
 
 // NewAES key 和 iv 长度必须都是 16
@@ -40,18 +43,18 @@ func NewAES(key, iv string) (*aesEnc, error) {
 	if len(key) != 16 || len(iv) != 16 {
 		return nil, errors.New("key 和 iv 长度必须都是 16")
 	}
-	return &aesEnc{key: []byte(key), iv: []byte(iv)}, nil
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return nil, err
+	}
+	return &aesEnc{block: block, iv: []byte(iv)}, nil
 }
 
 // Encrypt AES-CBC 加密
 func (a *aesEnc) Encrypt(str string) (string, error) {
-	block, err := aes.NewCipher(a.key)
-	if err != nil {
-		return "", err
-	}
+	blockSize := a.block.BlockSize()
 
 	// PKCS#7 填充
-	blockSize := block.BlockSize()
 	padding := blockSize - len(str)%blockSize
 	padText := make([]byte, padding)
 	for i := range padText {
@@ -63,7 +66,7 @@ func (a *aesEnc) Encrypt(str string) (string, error) {
 	iv := ciphertext[:blockSize]
 	copy(iv, a.iv)
 
-	mode := cipher.NewCBCEncrypter(block, iv)
+	mode := cipher.NewCBCEncrypter(a.block, iv) // 每次新建：有内部状态，不可复用
 	mode.CryptBlocks(ciphertext[blockSize:], plaintext)
 
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
@@ -76,19 +79,16 @@ func (a *aesEnc) Decrypt(str string) (string, error) {
 		return "", err
 	}
 
-	block, err := aes.NewCipher(a.key)
-	if err != nil {
-		return "", err
-	}
-	if len(ciphertext) < block.BlockSize() {
+	blockSize := a.block.BlockSize()
+	if len(ciphertext) < blockSize {
 		return "", errors.New("密文长度不足")
 	}
 
-	iv := ciphertext[:block.BlockSize()]
-	ciphertext = ciphertext[block.BlockSize():]
+	iv := ciphertext[:blockSize]
+	ciphertext = ciphertext[blockSize:]
 
 	plaintext := make([]byte, len(ciphertext))
-	mode := cipher.NewCBCDecrypter(block, iv)
+	mode := cipher.NewCBCDecrypter(a.block, iv) // 每次新建：有内部状态，不可复用
 	mode.CryptBlocks(plaintext, ciphertext)
 
 	if len(plaintext) == 0 {

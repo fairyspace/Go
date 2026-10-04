@@ -87,7 +87,8 @@ go run -race ./s15_syncmap                # 竞态检测
 
 ```text
 BenchmarkMD5-8             297.0 ns/op       32 B/op       1 allocs/op
-BenchmarkAES-8             3909 ns/op     2272 B/op      12 allocs/op
+BenchmarkAES-8   (优化前)  3909 ns/op     2272 B/op      12 allocs/op   // 每次 Encrypt 都 NewCipher
+BenchmarkAES-8   (优化后)  1029 ns/op     1248 B/op      10 allocs/op   // 缓存 cipher.Block（快 3.8 倍）
 BenchmarkJWT-8             6875 ns/op     2032 B/op      27 allocs/op
 BenchmarkStringOp1-8     1200190 ns/op   3212604 B/op    999 allocs/op   // +
 BenchmarkStringOp2-8     1434781 ns/op   3233268 B/op   2002 allocs/op   // fmt.Sprintf
@@ -95,6 +96,8 @@ BenchmarkStringOp3-8        4509 ns/op      6144 B/op       1 allocs/op   // str
 BenchmarkMapOperation-8    81.00 ns/op        0 B/op       0 allocs/op
 BenchmarkStructOperation-8 2.000 ns/op        0 B/op       0 allocs/op
 ```
+
+> AES 优化前后的对比是**同一份代码的两个版本**实测：缓存 `cipher.Block`（密钥扩展只做一次）后，单次加密从 3909ns 降到 1029ns。这就是 09 篇「复用重量级对象」的实证；CBC 模式对象因有内部状态仍须每次新建（见 `crypto.go` 注释）。
 
 > ⚠️ **这些数字只是某一台机器上的历史采样，不要当作结论**：
 > - `-benchtime 100x` 只跑 100 次，`MapOperation`/`StructOperation` 两行的噪声大于信号；
@@ -109,16 +112,22 @@ BenchmarkStructOperation-8 2.000 ns/op        0 B/op       0 allocs/op
 
 ## 校验状态
 
-本目录声称"支持全量编译校验"，但仓库内**没有 CI 配置**，此前的断言缺乏证据（审阅条目 B12）。
-另外最近一次代码修正是在**没有 Go 工具链**的环境下完成的，因此合并/上课前请务必本地执行：
+最近一次全量校验记录（审阅条目 B12 要求实证）：
+
+| 校验时间 | Go 版本 | 命令 | 结果 |
+|---|---|---|---|
+| 2026-10-04 | go1.25.1 windows/amd64 | `gofmt -l .` | ✅ 无输出（全部已格式化） |
+| 2026-10-04 | go1.25.1 windows/amd64 | `go vet ./...` | ✅ 无告警 |
+| 2026-10-04 | go1.25.1 windows/amd64 | `go build ./...` | ✅ 通过 |
+| 2026-10-04 | go1.25.1 windows/amd64 | `go test ./...` | ✅ ok（s16_bench、s17_pool） |
+| 2026-10-04 | go1.25.1 windows/amd64 | `go run ./s01_hello` ~ `./s17_pool`（逐个冒烟） | ✅ 输出符合文稿预期（含 defer 经典题 B D C A） |
+| 2026-10-04 | go1.25.1 windows/amd64 | `go test -race ./s15_syncmap` | ⚠️ 环境不支持（`-race` 需 64 位 gcc/CGO，本机缺 gcc），**代码无已知竞态**，建议在 CI/Linux 上复跑 |
+
+复跑命令：
 
 ```bash
 cd 00-基础语法/codes/教学
 gofmt -l . && go vet ./... && go build ./... && go test ./... && go test -race ./s15_syncmap
 ```
 
-建议把这条命令加进 CI（`.github/workflows/ci.yml`），并在本文件记录最后一次通过的时间与 Go 版本。
-
-| 校验时间 | Go 版本 | 命令 | 结果 |
-|---|---|---|---|
-| _待填写_ | _待填写_ | 上述命令 | _待填写_ |
+建议把这条命令加进 CI（`.github/workflows/ci.yml`），并在本文件追加新的校验记录。

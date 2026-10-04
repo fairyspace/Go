@@ -172,10 +172,13 @@ if ok {
 }
 
 // 类型 switch：更实用
+// ⚠️ 类型 switch 按**书写顺序**匹配，第一个命中的 case 生效。
+// 这里 *study 也实现了 Listen 方法，所以永远走第一个 case——
+// 若把更宽的接口放在前面，窄类型 case 会变成永远不可达的死代码（常见 bug）。
 switch v := s.(type) {
 case interface{ Listen(string) string }:
 	fmt.Println(v.Listen("music"))
-case *study:
+case *study: // 不可达：*study 必然命中第一个 case
 	fmt.Println("具体类型:", v.Name)
 }
 ```
@@ -201,17 +204,22 @@ if s, ok := v.(string); ok {
 
 ---
 
-## 二、学习 `grpc.Dial(target string, opts ...DialOption)` 的写法
+## 二、学习 `grpc.NewClient(target string, opts ...DialOption)` 的写法
 
-咱们平时是这样使用 `grpc.Dial` 方法的，比如：
+咱们平时是这样使用 gRPC 客户端的：
 
 ```go
-conn, err := grpc.Dial("127.0.0.1:8000",
+// 现代 API（grpc-go 1.63+）
+conn, err := grpc.NewClient("127.0.0.1:8000",
+	grpc.WithTransportCredentials(insecure.NewCredentials()),
 	grpc.WithChainStreamInterceptor(),
-	grpc.WithInsecure(),
-	grpc.WithBlock(),
-	grpc.WithDisableRetry(),
 )
+
+// ⚠️ 老项目里常见的两个 API 均已废弃：
+//   grpc.Dial            → grpc.NewClient
+//   grpc.WithInsecure()  → grpc.WithTransportCredentials(insecure.NewCredentials())
+// 迁移注意：NewClient 默认名字解析器是 dns，而 Dial 是 passthrough，
+// 直连 IP:PORT 的老代码迁移时需显式加 passthrough 或确认 DNS 可用。
 ```
 
 咱们怎么能写出类似这样的调用方式，它是怎么实现的？
@@ -286,6 +294,14 @@ friends, err := friend.Find("附近的人",
 
 ### 代码实现
 
+> ⚠️ **先指出这个 Demo 的一处反模式（A16）**：下面代码用 `sync.Pool` 池化了一个只有 5 个字段的 `option` 结构体（约 48 字节）。**这是不值得的**：
+>
+> - 分配成本近乎为零，池化省不下什么；
+> - 每次 `WithSex(1)` 仍会为返回的**闭包**分配一次（闭包捕获了参数），这是池化省不掉的；
+> - 净收益接近 0，代价却真实存在：必须维护 `reset()`，**漏一个字段就是脏数据串号**（上一个请求的 hobby 泄漏给下一个请求）。
+>
+> 正确做法见本节末尾的「对照实验」。`sync.Pool` 的正确使用场景是**分配代价高的对象**（`bytes.Buffer`、大 `[]byte`、编解码器），详见第 09 篇四。
+
 ```go
 // s10_option/friend/option.go
 package friend
@@ -294,8 +310,7 @@ import (
 	"sync"
 )
 
-// 对象池复用 option，避免每次调用都分配
-// 原理见第 09 篇 sync.Pool
+// ⚠️ 反模式示例：为 48 字节的小对象维护 Pool，得不偿失（见上方说明）
 var (
 	cache = &sync.Pool{
 		New: func() interface{} {
@@ -465,7 +480,7 @@ func main() {
 | 函数类型 `type Option func(*option)` | `option.go` | 本节二 |
 | 闭包捕获 option 指针 | `WithSex` 等函数返回的闭包 | 第 06 篇三 |
 | `defer` 归还资源 | `defer releaseOption(opt)` | 第 06 篇四 |
-| `sync.Pool` 对象复用 | `cache.Get()` / `cache.Put()` | 第 09 篇四 |
+| `sync.Pool` 对象复用 | `cache.Get()` / `cache.Put()` | 第 09 篇四（**注意：此处属反模式，见 A16 说明**） |
 | 私有结构体 + 构造函数 | `type option struct` / `New` | 本节一 |
 | 面向对象封装 | 只有 `WithXxx` 对外暴露 | 本节一 |
 
@@ -509,7 +524,7 @@ func main() {
 2. `var _ I = (*T)(nil)` 做**编译期断言**，接口变更时立刻报错。
 3. 结构体定义成私有 + 构造函数返回接口 = 封装，隐藏实现细节。
 4. 接口可以组合（内嵌），一个类型可实现多个接口。
-5. `opts ...Option` + `type Option func(*option)` 就是 **Options 模式**，与 `grpc.Dial` 同源。
-6. Options 内的临时对象用 `sync.Pool` + `defer` 归还，是本教程知识点的综合应用。
+5. `opts ...Option` + `type Option func(*option)` 就是 **Options 模式**，与 `grpc.NewClient` 同源（原 `grpc.Dial` 已废弃）。
+6. **对照实验（A16 修正）**：三种写法按推荐顺序——① 默认选**结构体参数**（保留编译期检查、无池化负担）；② 需要向后兼容时用 **Options 模式**；③ `sync.Pool` 池化 option 属**反模式**（对象太小，收益趋近 0，却有 `reset()` 脏数据风险），Pool 应留给分配代价高的对象（见第 09 篇四）。
 7. **不要滥用 `interface{}`**，它会触发逃逸并丢失类型安全。
 8. Options 模式有真实代价（失去编译期检查、需维护 reset），**配置项少时用结构体参数更好**。
