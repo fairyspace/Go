@@ -8,7 +8,7 @@
   function readProgress() {
     try {
       const value = JSON.parse(localStorage.getItem(progressKey) || "[]");
-      return Array.isArray(value) ? value.filter((id) => /^0[1-9]$|^10$/.test(id)) : [];
+      return Array.isArray(value) ? value.filter((id) => /^0[1-9]$/.test(id)) : [];
     } catch (_) {
       return [];
     }
@@ -21,10 +21,10 @@
   function paintProgress() {
     const completed = readProgress();
     document.querySelectorAll("[data-progress-label]").forEach((node) => {
-      node.textContent = `${completed.length} / 10`;
+      node.textContent = `${completed.length} / 9`;
     });
     document.querySelectorAll("[data-progress-bar]").forEach((node) => {
-      node.style.width = `${completed.length * 10}%`;
+      node.style.width = `${(completed.length / 9) * 100}%`;
     });
     document.querySelectorAll("[data-lesson-id]").forEach((node) => {
       const done = completed.includes(node.dataset.lessonId);

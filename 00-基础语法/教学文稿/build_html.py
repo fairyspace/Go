@@ -21,7 +21,7 @@ CODE_ROOT = REPO_ROOT / "00-基础语法" / "codes" / "教学"
 LESSONS = [
     {
         "id": "00", "file": "00-索引与学习路线.md", "page": "00-roadmap.html",
-        "name": "索引与学习路线", "phase": "探险地图", "tagline": "把 21 篇散记，走成一条从能写到写快的 Go 学习路线。",
+        "name": "索引与学习路线", "phase": "探险地图", "tagline": "把 Go 入门知识走成一条从能写到写快的学习路线。",
         "memory": "先能跑，再能写；写对、写好，最后写快。",
         "prompt": "不看目录，你能按顺序说出学习的四个阶段吗？",
         "hint": "能写 → 写对 → 写好 → 写快。先建立地图，再挑一篇动手。",
@@ -64,36 +64,27 @@ LESSONS = [
         "name": "结构体与 JSON", "phase": "给数据安家", "tagline": "用 struct 画好数据表单，再用 JSON 和外部世界握手。",
         "memory": "`struct` 是表单蓝图，JSON tag 是双语贴纸；ID 要精确，别随手塞进 `float64`。",
         "prompt": "JSON 里的字段名和 Go 字段名不同时，靠什么对上？",
-        "hint": "给导出的 struct 字段加上 `json:\"name\"` 这样的 tag。",
+        "hint": '给导出的 struct 字段加上 `json:"name"` 这样的 tag。',
         "code_groups": [
             {"title": "结构体、方法与 JSON tag", "run": "go run ./s05_struct", "files": ["s05_struct/main.go"]},
             {"title": "强类型 / 弱类型 JSON 解析", "run": "go run ./s12_json", "files": ["s12_json/main.go"]},
         ],
     },
     {
-        "id": "05", "file": "05-循环与流程控制.md", "page": "05-control-flow.html",
-        "name": "循环与流程控制", "phase": "让代码动起来", "tagline": "让程序按规则前进、跳过、分支，写出清楚的执行路径。",
-        "memory": "Go 的循环一把 `for` 梭；`continue` 跳过这轮，`break` 离开当前循环。",
-        "prompt": "`switch` 默认会自动落到下一个 case 吗？`fallthrough` 呢？",
-        "hint": "默认不会；只有显式写 `fallthrough` 才会继续执行下一个 case。",
+        "id": "05", "file": "05-流程控制与函数.md", "page": "05-flow-functions.html",
+        "name": "流程控制与函数", "phase": "让代码动起来", "tagline": "把循环与函数串起来：先让逻辑走通，再把重复动作收进函数。",
+        "memory": "`for` 管流程，函数管复用；`defer` 像叠盘子，后入先出。",
+        "prompt": "一次注册多个 defer，执行顺序是什么？函数里 append 后要不要接住返回切片？",
+        "hint": "defer 按 LIFO 执行；append 可能返回指向新底层数组的切片，通常要写 `s = append(s, x)`。",
         "code_groups": [
-            {"title": "for、range、switch 与跳转", "run": "go run ./s07_loop", "files": ["s07_loop/main.go"]},
-        ],
-    },
-    {
-        "id": "06", "file": "06-函数、闭包与 defer.md", "page": "06-functions.html",
-        "name": "函数、闭包与 defer", "phase": "让代码动起来", "tagline": "把逻辑打包复用，理解闭包捕获，以及 defer 的执行时机。",
-        "memory": "函数先入场，`defer` 后入先出；defer 的参数先记下，函数返回时再执行。",
-        "prompt": "同一个函数里注册了三个 defer，执行顺序是怎样的？",
-        "hint": "像叠盘子：后放上去的先拿走，也就是 LIFO。",
-        "code_groups": [
+            {"title": "循环、range、switch 与跳转", "run": "go run ./s07_loop", "files": ["s07_loop/main.go"]},
             {"title": "函数、闭包与错误处理", "run": "go run ./s08_func", "files": ["s08_func/main.go"]},
             {"title": "defer 经典题与资源释放", "run": "go run ./s08_defer", "files": ["s08_defer/main.go"]},
             {"title": "签名函数小实战", "run": "go run ./s08_sign", "files": ["s08_sign/main.go"]},
         ],
     },
     {
-        "id": "07", "file": "07-接口与 Options 模式.md", "page": "07-interfaces.html",
+        "id": "06", "file": "06-接口与 Options 模式.md", "page": "06-interfaces.html",
         "name": "接口与 Options 模式", "phase": "让代码动起来", "tagline": "让代码依赖“能做什么”，而不是“具体是谁”，再设计好可选配置。",
         "memory": "接口看能力，不看血统：方法集齐了，就能上场。",
         "prompt": "一个类型要显式写 `implements` 才能实现 Go 接口吗？",
@@ -104,7 +95,7 @@ LESSONS = [
         ],
     },
     {
-        "id": "08", "file": "08-并发编程.md", "page": "08-concurrency.html",
+        "id": "07", "file": "07-并发编程.md", "page": "07-concurrency.html",
         "name": "并发编程", "phase": "并发冲刺", "tagline": "让多个任务安全协作：用 channel 传话、WaitGroup 等待、锁保护共享数据。",
         "memory": "goroutine 负责跑，channel 负责传话，WaitGroup 负责等收工；共享 Map 要有保护。",
         "prompt": "`wg.Add(1)` 应该在启动 goroutine 前还是后？谁负责 close channel？",
@@ -116,7 +107,7 @@ LESSONS = [
         ],
     },
     {
-        "id": "09", "file": "09-性能调优.md", "page": "09-performance.html",
+        "id": "08", "file": "08-性能调优.md", "page": "08-performance.html",
         "name": "性能调优", "phase": "并发冲刺", "tagline": "先测量，再优化：用基准测试找到热点，再看逃逸和内存分配。",
         "memory": "先拿证据（Benchmark），再动手；`sync.Pool` 是临时周转箱，不是长期仓库。",
         "prompt": "优化代码前，先用什么证明它真的慢？改完之后又看哪些指标？",
@@ -128,7 +119,7 @@ LESSONS = [
         ],
     },
     {
-        "id": "10", "file": "10-常用标准库速查.md", "page": "10-stdlib.html",
+        "id": "09", "file": "09-常用标准库速查.md", "page": "09-stdlib.html",
         "name": "常用标准库速查", "phase": "并发冲刺", "tagline": "把时间、字符串、转换和错误处理这些高频工具收入自己的工具箱。",
         "memory": "Go 时间布局不是模板，是“参考时刻”：2006-01-02 15:04:05。",
         "prompt": "把 `2020-11-08T08:18:46+08:00` 转成常见日期格式，第一步是什么？",
@@ -142,8 +133,8 @@ LESSONS = [
 PHASES = [
     ("01", "开机起步", "先把工具装好，再学会让数据有名字。", ["01", "02"], "🧭"),
     ("02", "给数据安家", "数组、切片、Map 与结构体，数据住进合适的容器。", ["03", "04"], "📦"),
-    ("03", "让代码动起来", "流程控制、函数、接口——让程序按你的设计行动。", ["05", "06", "07"], "✏️"),
-    ("04", "并发冲刺", "并发协作、性能测量与标准库，写得稳也写得快。", ["08", "09", "10"], "🚀"),
+    ("03", "让代码动起来", "流程控制、函数与接口——让程序按你的设计行动。", ["05", "06"], "✏️"),
+    ("04", "并发冲刺", "并发协作、性能测量与标准库，写得稳也写得快。", ["07", "08", "09"], "🚀"),
 ]
 
 LESSON_BY_ID = {lesson["id"]: lesson for lesson in LESSONS}
@@ -570,7 +561,7 @@ def get_lead(markdown: str) -> str:
 def render_sidebar(active_id: str = "") -> str:
     progress = (
         '<div class="progress-card sketch-card">'
-        '<div class="progress-top"><span>学习进度</span><strong data-progress-label>0 / 10</strong></div>'
+        '<div class="progress-top"><span>学习进度</span><strong data-progress-label>0 / 9</strong></div>'
         '<div class="progress-track" aria-label="学习进度"><span data-progress-bar></span></div>'
         '<p>学完一篇，记得给自己一个小勾勾 ✓</p>'
         '</div>'
@@ -774,7 +765,7 @@ def render_index_page() -> str:
       <h1>把 Go 学习<br><em>画成一场小冒险</em></h1>
       <p>从第一行 <code>fmt.Println</code> 出发，沿着“能写 → 写对 → 写好 → 写快”的路线，边读边敲，逐篇通关。</p>
       <div class="hero-actions"><a class="button button-primary" href="{esc(first['page'])}">从第 01 篇开始 <span>→</span></a><a class="button button-quiet" href="00-roadmap.html">先看完整路线</a></div>
-      <div class="hero-facts"><span><b>10</b> 篇循序渐进</span><span><b>20+</b> 个代码练习包</span><span><b>0</b> 个外部依赖</span></div>
+      <div class="hero-facts"><span><b>9</b> 篇循序渐进</span><span><b>20+</b> 个代码练习包</span><span><b>0</b> 个外部依赖</span></div>
     </div>
     <div class="hero-art" aria-label="一位拿着铅笔的小小编程探险家">
       <div class="art-sun"></div><div class="art-caption">今天也要<br>敲一点点 ✎</div>
@@ -837,6 +828,10 @@ def main() -> None:
     for lesson in LESSONS:
         page = render_lesson_page(lesson)
         (OUTPUT_DIR / lesson["page"]).write_text(page, encoding="utf-8")
+    expected_pages = {"index.html", *(lesson["page"] for lesson in LESSONS)}
+    for stale_page in OUTPUT_DIR.glob("*.html"):
+        if stale_page.name not in expected_pages:
+            stale_page.unlink()
     total = sum(path.stat().st_size for path in OUTPUT_DIR.glob("*.html"))
     print(f"Built {len(LESSONS) + 1} HTML pages in {OUTPUT_DIR.relative_to(REPO_ROOT)} ({total:,} bytes)")
 

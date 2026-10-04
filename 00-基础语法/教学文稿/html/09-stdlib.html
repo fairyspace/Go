@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fff8e9">
   <meta name="description" content="把时间、字符串、转换和错误处理这些高频工具收入自己的工具箱。">
-  <title>10 常用标准库速查 · Go 代码探险队</title>
+  <title>09 常用标准库速查 · Go 代码探险队</title>
   <link rel="stylesheet" href="assets/style.css">
 </head>
-<body class="lesson-page" data-page="lesson" data-lesson="10">
+<body class="lesson-page" data-page="lesson" data-lesson="09">
 <a class="skip-link" href="#main-content">跳到正文</a><header class="topbar"><div class="topbar-inner"><a class="brand" href="index.html" aria-label="Go 代码探险队首页"><span class="brand-mark" aria-hidden="true"><span>go</span><i>✦</i></span><span class="brand-copy"><strong>Go 代码探险队</strong><small>一支笔 · 一段代码 · 一个知识点</small></span></a><nav class="top-links" aria-label="主要导航"><a href="index.html">学习地图</a><a href="00-roadmap.html">完整路线文稿</a><a href="../../codes/教学/README.md">示例代码</a></nav><div class="top-actions"><button class="tool-button focus-button" type="button" data-action="focus">专注阅读</button><button class="tool-button menu-button" type="button" data-action="menu" aria-expanded="false" aria-label="打开课程导航">☰</button></div></div></header>
 <div class="page-grid">
-  <aside class="side-col" aria-label="课程导航"><div class="progress-card sketch-card"><div class="progress-top"><span>学习进度</span><strong data-progress-label>0 / 10</strong></div><div class="progress-track" aria-label="学习进度"><span data-progress-bar></span></div><p>学完一篇，记得给自己一个小勾勾 ✓</p></div><label class="search-field"><span class="sr-only">搜索章节</span><span class="search-icon" aria-hidden="true">⌕</span><input type="search" placeholder="找一篇 Go 知识…" data-search-lessons></label><nav class="course-nav"><div class="nav-heading">学习路线 <span>✎</span></div><a class="course-link" href="00-roadmap.html" data-lesson-id="00" data-title="索引与学习路线"><span class="course-number">00</span><span class="course-name">索引与学习路线</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="01-setup.html" data-lesson-id="01" data-title="环境安装与项目结构"><span class="course-number">01</span><span class="course-name">环境安装与项目结构</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="02-values.html" data-lesson-id="02" data-title="变量、常量与数据类型"><span class="course-number">02</span><span class="course-name">变量、常量与数据类型</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="03-collections.html" data-lesson-id="03" data-title="数组、切片与 Map"><span class="course-number">03</span><span class="course-name">数组、切片与 Map</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="04-struct-json.html" data-lesson-id="04" data-title="结构体与 JSON"><span class="course-number">04</span><span class="course-name">结构体与 JSON</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="05-control-flow.html" data-lesson-id="05" data-title="循环与流程控制"><span class="course-number">05</span><span class="course-name">循环与流程控制</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="06-functions.html" data-lesson-id="06" data-title="函数、闭包与 defer"><span class="course-number">06</span><span class="course-name">函数、闭包与 defer</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="07-interfaces.html" data-lesson-id="07" data-title="接口与 Options 模式"><span class="course-number">07</span><span class="course-name">接口与 Options 模式</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="08-concurrency.html" data-lesson-id="08" data-title="并发编程"><span class="course-number">08</span><span class="course-name">并发编程</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="09-performance.html" data-lesson-id="09" data-title="性能调优"><span class="course-number">09</span><span class="course-name">性能调优</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="10-stdlib.html" data-lesson-id="10" data-title="常用标准库速查" aria-current="page"><span class="course-number">10</span><span class="course-name">常用标准库速查</span><span class="course-check" aria-hidden="true">✓</span></a></nav><a class="code-index-link" href="../../codes/教学/README.md">📎 全部示例代码</a></aside>
+  <aside class="side-col" aria-label="课程导航"><div class="progress-card sketch-card"><div class="progress-top"><span>学习进度</span><strong data-progress-label>0 / 9</strong></div><div class="progress-track" aria-label="学习进度"><span data-progress-bar></span></div><p>学完一篇，记得给自己一个小勾勾 ✓</p></div><label class="search-field"><span class="sr-only">搜索章节</span><span class="search-icon" aria-hidden="true">⌕</span><input type="search" placeholder="找一篇 Go 知识…" data-search-lessons></label><nav class="course-nav"><div class="nav-heading">学习路线 <span>✎</span></div><a class="course-link" href="00-roadmap.html" data-lesson-id="00" data-title="索引与学习路线"><span class="course-number">00</span><span class="course-name">索引与学习路线</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="01-setup.html" data-lesson-id="01" data-title="环境安装与项目结构"><span class="course-number">01</span><span class="course-name">环境安装与项目结构</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="02-values.html" data-lesson-id="02" data-title="变量、常量与数据类型"><span class="course-number">02</span><span class="course-name">变量、常量与数据类型</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="03-collections.html" data-lesson-id="03" data-title="数组、切片与 Map"><span class="course-number">03</span><span class="course-name">数组、切片与 Map</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="04-struct-json.html" data-lesson-id="04" data-title="结构体与 JSON"><span class="course-number">04</span><span class="course-name">结构体与 JSON</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="05-flow-functions.html" data-lesson-id="05" data-title="流程控制与函数"><span class="course-number">05</span><span class="course-name">流程控制与函数</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="06-interfaces.html" data-lesson-id="06" data-title="接口与 Options 模式"><span class="course-number">06</span><span class="course-name">接口与 Options 模式</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="07-concurrency.html" data-lesson-id="07" data-title="并发编程"><span class="course-number">07</span><span class="course-name">并发编程</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="08-performance.html" data-lesson-id="08" data-title="性能调优"><span class="course-number">08</span><span class="course-name">性能调优</span><span class="course-check" aria-hidden="true">✓</span></a><a class="course-link" href="09-stdlib.html" data-lesson-id="09" data-title="常用标准库速查" aria-current="page"><span class="course-number">09</span><span class="course-name">常用标准库速查</span><span class="course-check" aria-hidden="true">✓</span></a></nav><a class="code-index-link" href="../../codes/教学/README.md">📎 全部示例代码</a></aside>
   <main class="lesson-main" id="main-content">
-    <div class="breadcrumbs"><a href="index.html">学习地图</a><span>／</span><span>并发冲刺</span><span>／</span><strong>10</strong></div>
+    <div class="breadcrumbs"><a href="index.html">学习地图</a><span>／</span><span>并发冲刺</span><span>／</span><strong>09</strong></div>
     <section class="chapter-hero sketch-card">
-      <div class="chapter-kicker"><span class="chapter-sticker">任务 10</span><span>并发冲刺</span><span class="hero-spark" aria-hidden="true">✦</span></div>
-      <h1>10 常用标准库速查</h1>
+      <div class="chapter-kicker"><span class="chapter-sticker">任务 09</span><span>并发冲刺</span><span class="hero-spark" aria-hidden="true">✦</span></div>
+      <h1>09 常用标准库速查</h1>
       <p class="chapter-lead">学完本篇你将能够：正确解析和格式化各类型时间字符串、避开 Go 时间格式的常见坑、熟练使用 strings/strconv/errors 等日常标准库、写出可维护的错误处理代码。</p>
-      <div class="chapter-meta"><span>📝 一篇一练</span><span>🧩 小步掌握</span><a href="../10-%E5%B8%B8%E7%94%A8%E6%A0%87%E5%87%86%E5%BA%93%E9%80%9F%E6%9F%A5.md">查看 Markdown 原稿 ↗</a></div>
+      <div class="chapter-meta"><span>📝 一篇一练</span><span>🧩 小步掌握</span><a href="../09-%E5%B8%B8%E7%94%A8%E6%A0%87%E5%87%86%E5%BA%93%E9%80%9F%E6%9F%A5.md">查看 Markdown 原稿 ↗</a></div>
       <svg class="hero-doodle-mini" viewBox="0 0 100 90" aria-hidden="true"><path d="M12 65 Q28 42 41 58 T70 44" fill="none" stroke="#287d68" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/><path d="M57 28 L77 9 L91 23 L71 43 Z" fill="#ffd46c" stroke="#263238" stroke-width="2.4" stroke-linejoin="round"/><path d="M57 28 L71 43 L67 52 L52 36 Z" fill="#f58a70" stroke="#263238" stroke-width="2.4"/><path d="M52 36 L47 54 L67 52" fill="#fff8e9" stroke="#263238" stroke-width="2.4" stroke-linejoin="round"/><path d="M21 75 Q33 82 42 74" fill="none" stroke="#e78361" stroke-width="2" stroke-linecap="round"/></svg>
     </section>
     <section class="memory-note sketch-card" aria-label="记忆提示">
@@ -27,7 +27,7 @@
       <div class="recall-row"><span class="recall-badge">🧠 30 秒复述</span><span class="recall-question">把 `2020-11-08T08:18:46+08:00` 转成常见日期格式，第一步是什么？</span><button type="button" class="hint-button" data-action="reveal">翻开提示 ↗</button></div>
       <p class="recall-answer" hidden>先按 <code>time.RFC3339</code> Parse 成 time.Time，再用目标 layout Format。</p>
     </section>
-    <button class="complete-button" type="button" data-action="complete" data-lesson="10"><span class="complete-icon">✓</span><span data-complete-label>我学会了，打个勾</span></button>
+    <button class="complete-button" type="button" data-action="complete" data-lesson="09"><span class="complete-icon">✓</span><span data-complete-label>我学会了，打个勾</span></button>
     <article class="markdown-body" id="article">
       <h2 id="section-01">概述</h2>
 <p>本篇源自原「time.RFC3339 时间格式化」一篇，并补充了日常开发高频使用的标准库速查表，作为整个教程的收尾与查阅手册。</p>
@@ -214,7 +214,7 @@ strings.Fields(&quot;a b  c&quot;)     // [&quot;a&quot; &quot;b&quot; &quot;c&q
 strings.Repeat(&quot;ab&quot;, 3)      // &quot;ababab&quot;
 strings.Title(&quot;tom&quot;)         // 已废弃，用 golang.org/x/text/cases
 
-// 高效拼接（见第 09 篇）
+// 高效拼接（见第 08 篇）
 var sb strings.Builder
 sb.Grow(64)
 for i := 0; i &lt; 10; i++ {
@@ -248,7 +248,7 @@ s4 := strconv.FormatBool(true)               // &quot;true&quot;
 s5 := strconv.FormatInt(255, 16)     // &quot;ff&quot;
 i6, _ := strconv.ParseInt(&quot;ff&quot;, 16, 64) // 255</code></pre></div>
 <blockquote class="sketch-quote">
-<p><code>strconv</code> vs <code>fmt.Sprintf</code>：只是格式化数字转字符串时用 <code>strconv</code>，更快且无反射；拼接字符串用 <code>strings.Builder</code>（第 09 篇）。</p>
+<p><code>strconv</code> vs <code>fmt.Sprintf</code>：只是格式化数字转字符串时用 <code>strconv</code>，更快且无反射；拼接字符串用 <code>strings.Builder</code>（第 08 篇）。</p>
 </blockquote>
 <hr class="sketch-rule">
 <h2 id="section-11">五、errors 与 fmt</h2>
@@ -412,8 +412,8 @@ func RFC3339ToCSTLayout(value string) (string, error) {
 func UnixToCSTLayout(ts int64) string {
 	return time.Unix(ts, 0).In(cst).Format(CSTLayout)
 }</code></pre></div></details></section><a class="repo-code-link" href="../../codes/教学/README.md">看完整代码目录与运行说明 ↗</a></section>
-    <nav class="lesson-pager" aria-label="篇章翻页"><a class="previous-lesson" href="09-performance.html"><span>← 上一篇</span><strong>09 性能调优</strong></a></nav>
-    <footer class="page-footer"><span>✿ 边看边敲，比只看更牢。</span><span>源稿：<a href="../10-%E5%B8%B8%E7%94%A8%E6%A0%87%E5%87%86%E5%BA%93%E9%80%9F%E6%9F%A5.md">10-常用标准库速查.md</a></span></footer>
+    <nav class="lesson-pager" aria-label="篇章翻页"><a class="previous-lesson" href="08-performance.html"><span>← 上一篇</span><strong>08 性能调优</strong></a></nav>
+    <footer class="page-footer"><span>✿ 边看边敲，比只看更牢。</span><span>源稿：<a href="../09-%E5%B8%B8%E7%94%A8%E6%A0%87%E5%87%86%E5%BA%93%E9%80%9F%E6%9F%A5.md">09-常用标准库速查.md</a></span></footer>
   </main>
   <aside class="toc-col" aria-label="本页导航"><div class="toc-card sketch-card"><div class="toc-title">本页小地图 <span>⌁</span></div><nav id="toc-nav"><ul class="toc-list"><li class=""><a href="#section-01">概述</a></li><li class=""><a href="#section-02">一、time.RFC3339 时间格式化</a></li><li class="toc-sub"><a href="#section-03">问题</a></li><li class="toc-sub"><a href="#section-04">代码实现</a></li><li class="toc-sub"><a href="#section-05">运行一下</a></li><li class="toc-sub"><a href="#section-06">小结</a></li><li class=""><a href="#section-07">二、time 常用操作</a></li><li class="toc-sub"><a href="#section-08">易错点汇总</a></li><li class=""><a href="#section-09">三、strings 常用</a></li><li class=""><a href="#section-10">四、strconv 类型转换</a></li><li class=""><a href="#section-11">五、errors 与 fmt</a></li><li class="toc-sub"><a href="#section-12">错误处理惯例</a></li><li class=""><a href="#section-13">六、常用标准库速查表</a></li><li class=""><a href="#section-14">本篇要点</a></li></ul></nav><div class="toc-tip">读完一小节，就自己讲一遍。<span>↙</span></div></div></aside>
 </div>

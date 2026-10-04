@@ -1,6 +1,6 @@
 # 教学示例代码
 
-配合 [`../../教学文稿/`](../../教学文稿) 与 [`../../教案/`](../../教案) 使用的可运行示例，由原 `codes/demo_1.go` ~ `demo_26.go` 重新整理而成。
+配合 [`../../教学文稿/`](../../教学文稿) 使用的可运行示例，由原 `codes/demo_1.go` ~ `demo_26.go` 重新整理而成。
 
 ## 为何改成子目录结构
 
@@ -14,7 +14,7 @@ Go 要求同一目录只能有一个 `package main` 的入口。本目录改为*
 
 ## 环境
 
-- Go 1.22+（教案基线为 Go 1.27，推荐 1.24+）
+- Go 1.22+（推荐使用 Go 1.24 或更新版本）
 - 本目录有独立 `go.mod`（module `demo`），不依赖仓库其他目录，**也不使用任何第三方库**，可离线运行
 
 ## 常用命令
@@ -38,7 +38,7 @@ go run -race ./s15_syncmap                # 竞态检测
 
 ## 目录索引
 
-| 目录 | 对应文稿 / 教案 | 演示内容 | 运行方式 |
+| 目录 | 对应文稿 | 演示内容 | 运行方式 |
 |---|---|---|---|
 | `s01_hello/` | 01 | Hello World | `go run` |
 | `s02_var/` | 02 | 常量/变量声明、零值、iota、四种 fmt 输出 | `go run` |
@@ -46,24 +46,24 @@ go run -race ./s15_syncmap                # 竞态检测
 | `s04_slice/` | 03 二 | 声明、截取、三索引切片、append 扩容、三种删除 | `go run` |
 | `s05_struct/` | 04 一 | 命名/匿名结构体、嵌套、接收者、JSON tag | `go run` |
 | `s06_map/` | 03 三 | 六种声明、nil map 陷阱、编辑删除、有序遍历 | `go run` |
-| `s07_loop/` | 05 | 三种容器遍历、break/continue/goto/switch | `go run` |
-| `s08_func/` | 06 一~三 | 传值传指针、命名返回值、错误处理、不定参数、闭包 | `go run` |
-| `s08_sign/` | 06 四 | MD5 + 生成签名（`strings.Builder` 拼接） | `go run` |
-| `s08_defer/` | 06 四 | defer 经典题 + 五个坑 + 资源释放 | `go run` |
-| `s09_interface/` | 07 一 | 隐式实现、编译期断言、接口组合、类型断言 | `go run` |
-| `s10_option/` | 07 二 | Options 模式、结构体参数对比、**sync.Pool 反例**（见下） | `go run` |
-| `s11_timeutil/` | 10 一二 | RFC3339 转 CST、time 常用操作、定时器 | `go run` |
+| `s07_loop/` | 05 Part A | 三种容器遍历、break/continue/goto/switch | `go run` |
+| `s08_func/` | 05 Part B 一~三 | 传值传指针、命名返回值、错误处理、不定参数、闭包 | `go run` |
+| `s08_sign/` | 05 Part B 四 | MD5 + 生成签名（`strings.Builder` 拼接） | `go run` |
+| `s08_defer/` | 05 Part B 四 | defer 经典题 + 五个坑 + 资源释放 | `go run` |
+| `s09_interface/` | 06 一 | 隐式实现、编译期断言、接口组合、类型断言 | `go run` |
+| `s10_option/` | 06 二 | Options 模式、结构体参数对比、**sync.Pool 反例**（见下） | `go run` |
+| `s11_timeutil/` | 09 一二 | RFC3339 转 CST、time 常用操作、定时器 | `go run` |
 | `s12_json/` | 04 三四 | 强类型/弱类型/匿名内嵌摊平、科学计数法与 2^53 精度边界 | `go run` |
-| `s13_chan/` | 08 一 | channel 阻塞、close 规则、方向化、select、Worker Pool | `go run` |
-| `s14_waitgroup/` | 08 二 | 正确用法、三个坑、context 取消、并发收集结果 | `go run` |
-| `s15_syncmap/` | 08 三 | Store/Load/Range、六个方法、RWMutex 对比、-race | `go run` |
-| `s16_bench/` | 09 一二 | MD5/AES/JWT 基准、字符串三写法、map vs struct | **`go test`** |
-| `s17_escape/` | 09 三 | interface 字段/返回指针/大对象三种逃逸 | `go run` |
-| `s17_pool/` | 09 四 | sync.Pool 复用临时对象、reset 必要性、基准对比 | `go run` + `go test` |
+| `s13_chan/` | 07 一 | channel 阻塞、close 规则、方向化、select、Worker Pool | `go run` |
+| `s14_waitgroup/` | 07 二 | 正确用法、三个坑、context 取消、并发收集结果 | `go run` |
+| `s15_syncmap/` | 07 三 | Store/Load/Range、六个方法、RWMutex 对比、-race | `go run` |
+| `s16_bench/` | 08 一二 | MD5/AES/JWT 基准、字符串三写法、map vs struct | **`go test`** |
+| `s17_escape/` | 08 三 | interface 字段/返回指针/大对象三种逃逸 | `go run` |
+| `s17_pool/` | 08 四 | sync.Pool 复用临时对象、reset 必要性、基准对比 | `go run` + `go test` |
 
 ## 本次审阅修正的代码缺陷
 
-逐条依据见 [`../../教案/00-审阅报告.md`](../../教案/00-审阅报告.md)（条目 P1~P9）：
+以下列出本次整理中修正的关键代码缺陷：
 
 | 目录/文件 | 修正 |
 |---|---|
@@ -79,7 +79,7 @@ go run -race ./s15_syncmap                # 竞态检测
 
 - **`s10_option/friend/option.go` 用 `sync.Pool` 池化一个 5 字段的 `option`**：对象约 48 字节，分配成本近乎为零；而每次 `WithXxx(...)` 都会为返回的闭包分配一次，池化省不掉。代价是必须维护 `reset()`，漏一个字段就是脏数据串号。
   课堂请用 `s17_pool` 的基准方法验证它是否真的有效：`go test -bench . -benchmem ./s17_pool`。
-  详见教案 07 篇 §5.5（审阅条目 A16）。
+  反模式说明见 [第 06 篇《接口与 Options 模式》](../../教学文稿/06-接口与%20Options%20模式.md)（A16）。
 
 ## 基准数据（历史数据，仅供参考）
 
@@ -97,7 +97,7 @@ BenchmarkMapOperation-8    81.00 ns/op        0 B/op       0 allocs/op
 BenchmarkStructOperation-8 2.000 ns/op        0 B/op       0 allocs/op
 ```
 
-> AES 优化前后的对比是**同一份代码的两个版本**实测：缓存 `cipher.Block`（密钥扩展只做一次）后，单次加密从 3909ns 降到 1029ns。这就是 09 篇「复用重量级对象」的实证；CBC 模式对象因有内部状态仍须每次新建（见 `crypto.go` 注释）。
+> AES 优化前后的对比是**同一份代码的两个版本**实测：缓存 `cipher.Block`（密钥扩展只做一次）后，单次加密从 3909ns 降到 1029ns。这就是 08 篇「复用重量级对象」的实证；CBC 模式对象因有内部状态仍须每次新建（见 `crypto.go` 注释）。
 
 > ⚠️ **这些数字只是某一台机器上的历史采样，不要当作结论**：
 > - `-benchtime 100x` 只跑 100 次，`MapOperation`/`StructOperation` 两行的噪声大于信号；
@@ -112,7 +112,7 @@ BenchmarkStructOperation-8 2.000 ns/op        0 B/op       0 allocs/op
 
 ## 校验状态
 
-最近一次全量校验记录（审阅条目 B12 要求实证）：
+最近一次全量校验记录：
 
 | 校验时间 | Go 版本 | 命令 | 结果 |
 |---|---|---|---|

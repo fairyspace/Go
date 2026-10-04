@@ -194,7 +194,7 @@ sli = append(sli, 10) // len=7 cap=12 再次扩容
 > ```go
 > sli := make([]int, 0, 100) // 一次分配，后续 append 不再扩容
 > ```
-> 详见第 09 篇「逃逸分析场景 03」。
+> 详见第 08 篇「逃逸分析场景 03」。
 
 ### 删除切片
 
@@ -223,7 +223,7 @@ func deleteElem(s []int, i int) []int {
 
 // 保留满足条件的元素
 func filter(s []int, keep func(int) bool) []int {
-	res := s[:0] // 复用底层数组，零分配（第 09 篇）
+	res := s[:0] // 复用底层数组，零分配（第 08 篇）
 	for _, v := range s {
 		if keep(v) {
 			res = append(res, v)
@@ -407,7 +407,7 @@ for k, v := range person {
 > 	fmt.Println(k, person[k])
 > }
 > ```
-> 这正是第 06 篇「生成签名」函数里必须 `sort.Strings(key)` 的原因。
+> 这正是第 05 篇「生成签名」函数里必须 `sort.Strings(key)` 的原因。
 
 ### 常见用途
 
@@ -417,7 +417,7 @@ Map 适合表达「**键的集合是动态的**」的映射关系：
 - 缓存 / 字典 / 计数器
 - 第三方接口的动态响应结构（详见第 04 篇）
 
-**选型规则**：字段固定 → struct；字段动态 → map；`map[string]interface{}` 只用于**结构确实未知**的透传场景（性能代价见第 09 篇「两个开发注意点」）。
+**选型规则**：字段固定 → struct；字段动态 → map；`map[string]interface{}` 只用于**结构确实未知**的透传场景（性能代价见第 08 篇「两个开发注意点」）。
 
 ## 本篇要点
 
