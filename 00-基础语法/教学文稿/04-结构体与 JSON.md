@@ -1,16 +1,18 @@
 # 04 结构体与 JSON
 
-> 学完本篇你将能够：用 struct 描述复杂数据、掌握 JSON 序列化的三种解析方式、避开 `json.Unmarshal` 最经典的精度坑、知道何时该用 struct 何时该用 map。
+> 学完本篇你将能够：用 struct 描述复杂数据、掌握 JSON 序列化的三种解析方式、避开 `json.Unmarshal` 最经典的精度坑、知道何时该用
+> struct 何时该用 map。
 
 ## 概述
 
-本文合并了原三篇教程：结构体、解析 JSON 数据、json.Unmarshal 遇到的小坑。它们是一条完整链路：**结构体是载体 → JSON 是传输格式 → 解析是过程 → 踩坑与解法**。
+本文合并了原三篇教程：结构体、解析 JSON 数据、json.Unmarshal 遇到的小坑。它们是一条完整链路： **结构体是载体 → JSON
+是传输格式 → 解析是过程 → 踩坑与解法**。
 
 ---
 
 ## 一、结构体 Struct
 
-结构体是将零个或多个任意类型的变量，组合在一起的**聚合类型**数据类型，也可以看做是数据的集合。
+结构体是将零个或多个任意类型的变量，组合在一起的 **聚合类型**数据类型，也可以看做是数据的集合。
 
 ### 声明结构体
 
@@ -46,23 +48,23 @@ func main() {
 
 要点：
 
-- 字段名**首字母大写导出**（`Name`），小写私有（`name`）
+- 字段名 **首字母大写导出**（`Name`），小写私有（`name`）
 - 字段可以任意类型，包括数组、切片、map、其他结构体
-- 零值演示（须在赋值**之前**打印）：`fmt.Printf("%+v\n", Person{})` 输出 `{Name: Age:0}`
+- 零值演示（须在赋值 **之前**打印）：`fmt.Printf("%+v\n", Person{})` 输出 `{Name: Age:0}`
 
 ### 嵌套与比较
 
 ```go
 type Address struct {
-	City string
-	Zip  string
+City string
+Zip  string
 }
 
 type User struct {
-	Name    string
-	Age     int
-	Address Address // 值嵌套（拷贝一份）
-	Ptr     *Address // 指针嵌套（共享同一份）
+Name    string
+Age     int
+Address Address // 值嵌套（拷贝一份）
+Ptr     *Address // 指针嵌套（共享同一份）
 }
 
 u := User{Name: "Tom", Address: Address{City: "杭州", Zip: "310000"}}
@@ -77,37 +79,37 @@ b := Address{City: "杭州", Zip: "310000"}
 fmt.Println(a == b) // true
 ```
 
-> 结构体含 slice、map、func 字段时**不可用 `==` 比较**，需用 `reflect.DeepEqual(a, b)`。
+> 结构体含 slice、map、func 字段时 **不可用 `==` 比较**，需用 `reflect.DeepEqual(a, b)`。
 
 ### 值传递 vs 指针传递
 
-结构体默认按值传递会**拷贝整个结构体**。要修改外部变量，必须传指针：
+结构体默认按值传递会 **拷贝整个结构体**。要修改外部变量，必须传指针：
 
 ```go
 type Result struct {
-	Code    int    `json:"code"`
-	Message string `json:"msg"`
+Code    int    `json:"code"`
+Message string `json:"msg"`
 }
 
 func setData(res *Result) { // 指针参数
-	res.Code = 500
-	res.Message = "fail"
+res.Code = 500
+res.Message = "fail"
 }
 
 func toJson(res *Result) {
-	jsons, errs := json.Marshal(res)
-	if errs != nil {
-		fmt.Println("json marshal error:", errs)
-	}
-	fmt.Println("json data :", string(jsons))
+jsons, errs := json.Marshal(res)
+if errs != nil {
+fmt.Println("json marshal error:", errs)
+}
+fmt.Println("json data :", string(jsons))
 }
 
 func main() {
-	res := Result{Code: 200, Message: "success"}
-	toJson(&res)
+res := Result{Code: 200, Message: "success"}
+toJson(&res)
 
-	setData(&res) // 传指针，修改生效
-	toJson(&res)
+setData(&res) // 传指针，修改生效
+toJson(&res)
 }
 ```
 
@@ -128,7 +130,7 @@ c.Add() // Go 会自动取地址，等价于 (&c).Add()
 fmt.Println(c.Get())
 ```
 
-> **约定**：同一类型的接收者风格必须统一。struct 含 `sync.Mutex` 等不可复制字段时，**必须**用指针接收者。
+> **约定**：同一类型的接收者风格必须统一。struct 含 `sync.Mutex` 等不可复制字段时， **必须**用指针接收者。
 
 ---
 
@@ -138,27 +140,29 @@ fmt.Println(c.Get())
 
 ```go
 type Result struct {
-	Code    int    `json:"code"`
-	Message string `json:"msg"`
+Code    int    `json:"code"`
+Message string `json:"msg"`
 }
 ```
 
 常用 tag 选项：
 
-| 选项 | 作用 |
-|---|---|
-| `json:"name"` | 字段名映射 |
-| `json:"name,omitempty"` | 为零值时省略该字段 |
-| `json:"-"` | 该字段**完全不参与 JSON**（Marshal 与 Unmarshal 双向都跳过） |
-| `json:"-,"` | 字段名就叫 `-`（带逗号才生效，否则被当作上面的忽略标记） |
-| `json:",string"` | 数值以字符串形式输出 |
-| `json:"name,string,omitempty"` | 组合使用 |
+| 选项                           | 作用                                                         |
+|--------------------------------|--------------------------------------------------------------|
+| `json:"name"`                  | 字段名映射                                                   |
+| `json:"name,omitempty"`        | 为零值时省略该字段                                           |
+| `json:"-"`                     | 该字段**完全不参与 JSON**（Marshal 与 Unmarshal 双向都跳过） |
+| `json:"-,"`                    | 字段名就叫 `-`（带逗号才生效，否则被当作上面的忽略标记）     |
+| `json:",string"`               | 数值以字符串形式输出                                         |
+| `json:"name,string,omitempty"` | 组合使用                                                     |
 
 > ⚠️ 常见误区：`json:"-"` 并不是「只用于反序列化」。官方文档明确：
-> "if the field tag is `-`, the field is always omitted. Note that a field with name `-` can still be generated using the tag `- ,`"（即 `json:"-,"`）。
-> 想做「序列化时输出、反序列化时忽略」（常见于密码字段），需要**另定义一个不tag该字段的接收结构体**，或实现 `json.Unmarshaler` 接口。
+> "if the field tag is `-`, the field is always omitted. Note that a field with name `-` can still be generated using
+> the tag `- ,`"（即 `json:"-,"`）。
+> 想做「序列化时输出、反序列化时忽略」（常见于密码字段），需要 **另定义一个不tag该字段的接收结构体**，或实现 `json.Unmarshaler`
+> 接口。
 
-> tag 是**反射**机制：Marshal/Unmarshal 通过 `reflect` 读取 tag 来决定字段映射关系。
+> tag 是 **反射**机制：Marshal/Unmarshal 通过 `reflect` 读取 tag 来决定字段映射关系。
 
 ### 序列化与反序列化
 
@@ -168,7 +172,7 @@ res := Result{Code: 200, Message: "success"}
 // 序列化：结构体 → JSON 字符串
 jsons, errs := json.Marshal(res)
 if errs != nil {
-	fmt.Println("json marshal error:", errs)
+fmt.Println("json marshal error:", errs)
 }
 fmt.Println("json data :", string(jsons)) // {"code":200,"msg":"success"}
 
@@ -176,7 +180,7 @@ fmt.Println("json data :", string(jsons)) // {"code":200,"msg":"success"}
 var res2 Result
 errs = json.Unmarshal(jsons, &res2)
 if errs != nil {
-	fmt.Println("json unmarshal error:", errs)
+fmt.Println("json unmarshal error:", errs)
 }
 fmt.Println("res2 :", res2) // {200 success}
 ```
@@ -208,16 +212,16 @@ json.NewEncoder(os.Stdout).Encode(res)
 
 ```json
 {
-    "resultcode": "200",
-    "reason": "Return Successd!",
-    "result": {
-        "province": "浙江",
-        "city": "杭州",
-        "areacode": "0571",
-        "zip": "310000",
-        "company": "中国移动",
-        "card": ""
-    }
+  "resultcode": "200",
+  "reason": "Return Successd!",
+  "result": {
+    "province": "浙江",
+    "city": "杭州",
+    "areacode": "0571",
+    "zip": "310000",
+    "company": "中国移动",
+    "card": ""
+  }
 }
 ```
 
@@ -231,20 +235,20 @@ json 转 struct 手写太麻烦，推荐在线工具：https://mholt.github.io/j
 
 ```go
 type MobileInfo struct {
-	Resultcode string `json:"resultcode"`
-	Reason     string `json:"reason"`
-	Result     struct {
-		Province string `json:"province"`
-		City     string `json:"city"`
-		Areacode string `json:"areacode"`
-		Zip      string `json:"zip"`
-		Company  string `json:"company"`
-		Card     string `json:"card"`
-	} `json:"result"`
+Resultcode string `json:"resultcode"`
+Reason     string `json:"reason"`
+Result     struct {
+Province string `json:"province"`
+City     string `json:"city"`
+Areacode string `json:"areacode"`
+Zip      string `json:"zip"`
+Company  string `json:"company"`
+Card     string `json:"card"`
+} `json:"result"`
 }
 
 func main() {
-	jsonStr := `
+jsonStr := `
 	{
 		"resultcode": "200",
 		"reason": "Return Successd!",
@@ -259,26 +263,28 @@ func main() {
 	}
 	`
 
-	var mobile MobileInfo
-	err := json.Unmarshal([]byte(jsonStr), &mobile)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println(mobile.Resultcode) // 200
-	fmt.Println(mobile.Reason)     // Return Successd!
-	fmt.Println(mobile.Result.City) // 杭州
+var mobile MobileInfo
+err := json.Unmarshal([]byte(jsonStr), &mobile)
+if err != nil {
+fmt.Println(err.Error())
+return
+}
+fmt.Println(mobile.Resultcode) // 200
+fmt.Println(mobile.Reason) // Return Successd!
+fmt.Println(mobile.Result.City) // 杭州
 }
 ```
 
-> 这就是**最推荐的做法**：结构明确时永远用 struct，性能最好（第 08 篇会说明为什么）。
+> 这就是 **最推荐的做法**：结构明确时永远用 struct，性能最好（第 08 篇会说明为什么）。
 
 ### 情况二：数据类型不确定 —— 弱类型解析
 
 先定义一个 `string` 类型的 `resultcode`，JSON 却返回了 `int`：
 
 ```json
-{ "resultcode": 200 }
+{
+  "resultcode": 200
+}
 ```
 
 思路是去 github 找开源类库，使用 **mapstructure**：https://github.com/mitchellh/mapstructure
@@ -287,27 +293,27 @@ func main() {
 
 ```go
 type MobileInfo struct {
-	Resultcode string `mapstructure:"resultcode"`
+Resultcode string `mapstructure:"resultcode"`
 }
 
 func main() {
-	jsonStr := `{"resultcode": 200}`
+jsonStr := `{"resultcode": 200}`
 
-	// 第一步：先转成通用 map
-	var result map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+// 第一步：先转成通用 map
+var result map[string]interface{}
+if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+fmt.Println(err.Error())
+return
+}
 
-	// 第二步：弱类型转换到 struct
-	var mobile MobileInfo
-	if err := mapstructure.WeakDecode(result, &mobile); err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+// 第二步：弱类型转换到 struct
+var mobile MobileInfo
+if err := mapstructure.WeakDecode(result, &mobile); err != nil {
+fmt.Println(err.Error())
+return
+}
 
-	fmt.Println(mobile.Resultcode) // 200（int 自动转为 string）
+fmt.Println(mobile.Resultcode) // 200（int 自动转为 string）
 }
 ```
 
@@ -325,36 +331,36 @@ func main() {
 
 ```go
 type Family struct {
-	LastName string
+LastName string
 }
 type Location struct {
-	City string
+City string
 }
 type Person struct {
-	Family    `mapstructure:",squash"`
-	Location  `mapstructure:",squash"`
-	FirstName string
+Family    `mapstructure:",squash"`
+Location  `mapstructure:",squash"`
+FirstName string
 }
 
 func main() {
-	input := map[string]interface{}{
-		"FirstName": "Mitchell",
-		"LastName":  "Hashimoto",
-		"City":      "San Francisco",
-	}
+input := map[string]interface{}{
+"FirstName": "Mitchell",
+"LastName":  "Hashimoto",
+"City":      "San Francisco",
+}
 
-	var result Person
-	if err := mapstructure.Decode(input, &result); err != nil {
-		panic(err)
-	}
+var result Person
+if err := mapstructure.Decode(input, &result); err != nil {
+panic(err)
+}
 
-	fmt.Println(result.FirstName) // Mitchell
-	fmt.Println(result.LastName)  // Hashimoto
-	fmt.Println(result.City)      // San Francisco
+fmt.Println(result.FirstName) // Mitchell
+fmt.Println(result.LastName) // Hashimoto
+fmt.Println(result.City) // San Francisco
 }
 ```
 
-> `,squash` 表示把内嵌结构体的字段**摊平**到外层，这样 `LastName` 就是 `result.LastName` 而不是 `result.Family.LastName`。
+> `,squash` 表示把内嵌结构体的字段 **摊平**到外层，这样 `LastName` 就是 `result.LastName` 而不是`result.Family.LastName`。
 >
 > 其他常用 tag：
 > - `mapstructure:",remain"` —— 未被匹配到的字段统一收进该字段
@@ -376,7 +382,7 @@ jsonStr := `{"number":1234567}`
 result := make(map[string]interface{})
 err := json.Unmarshal([]byte(jsonStr), &result)
 if err != nil {
-	fmt.Println(err)
+fmt.Println(err)
 }
 fmt.Println(result)
 
@@ -389,7 +395,7 @@ fmt.Println(result)
 
 当数据结构未知、使用 `map[string]interface{}` 来接收反序列化结果时，如果数字的位数大于 6 位，都会变成科学计数法，用到的地方都会受到影响。
 
-典型受害场景：**订单号、雪花 ID、金额、时间戳（13 位毫秒时间戳受影响最严重）**。
+典型受害场景： **订单号、雪花 ID、金额、时间戳（13 位毫秒时间戳受影响最严重）**。
 
 ### 3. 引起问题的原因
 
@@ -409,11 +415,13 @@ fmt.Println(result)
 
 是因为当 `JSON` 中存在一个比较大的数字时，它会被解析成 `float64` 类型，就有可能会出现科学计数法的形式。
 
-> 这里要**区分两个不同的问题**，成因不同、必须分开理解：
+> 这里要 **区分两个不同的问题**，成因不同、必须分开理解：
 >
-> **① 显示问题（值没变）**：`float64` 经 `%v` 输出时，有效位 ≥ 7 位就切换成科学计数法。`1234567` 显示为 `1.234567e+06`，但数值本身是精确的——`float64(1234567)` 与 `1234567` 相等。
+> **① 显示问题（值没变）**：`float64` 经 `%v` 输出时，有效位 ≥ 7 位就切换成科学计数法。`1234567` 显示为 `1.234567e+06`
+> ，但数值本身是精确的——`float64(1234567)` 与 `1234567` 相等。
 >
-> **② 精度问题（值真的变了）**：`float64` 只有 53 位尾数，能**精确表示**的整数范围是 `±2^53`（`9007199254740992`，约 9.0e15）。**整数绝对值超过 2^53 才会真正丢精度**。
+> **② 精度问题（值真的变了）**：`float64` 只有 53 位尾数，能 **精确表示**的整数范围是 `±2^53`（`9007199254740992`，约 9.0e15）。
+> **整数绝对值超过 2^53 才会真正丢精度**。
 >
 > ```go
 > // 可实机验证
@@ -422,7 +430,8 @@ fmt.Println(result)
 > fmt.Println(float64(7300000000000000001) == 7300000000000000001) // false —— 19 位雪花 ID，真丢精度
 > ```
 >
-> 典型的精度受害者是 **19 位雪花 ID**（如 `7300000000000000001`）、超过 2^53 的纳秒级计算结果。两个问题的解法相同（别用 `map[string]interface{}` 接 ID），但成因不同。
+> 典型的精度受害者是 **19 位雪花 ID**（如 `7300000000000000001`）、超过 2^53 的纳秒级计算结果。两个问题的解法相同（别用
+> `map[string]interface{}` 接 ID），但成因不同。
 
 ### 4. 问题的解决方案
 
@@ -436,7 +445,7 @@ fmt.Println(int(result["number"].(float64))) // 1234567
 > ```go
 > fmt.Println(int64(result["number"].(float64)))
 > ```
-> 但这**无法挽回已经丢失的精度**，只是把问题推迟。
+> 但这 **无法挽回已经丢失的精度**，只是把问题推迟。
 
 #### 方案二：定义结构体接收（推荐）
 
@@ -444,19 +453,19 @@ fmt.Println(int(result["number"].(float64))) // 1234567
 
 ```go
 type Num struct {
-	Number int `json:"number"`
+Number int `json:"number"`
 }
 
 jsonStr := `{"number":1234567}`
 var result Num
 err := json.Unmarshal([]byte(jsonStr), &result)
 if err != nil {
-	fmt.Println(err)
+fmt.Println(err)
 }
 fmt.Println(result) // {1234567}
 ```
 
-> 这是**最推荐的方案**。它同时解决了科学计数法、精度丢失和类型安全问题。
+> 这是 **最推荐的方案**。它同时解决了科学计数法、精度丢失和类型安全问题。
 > 完整代码见 `codes/教学/s12_json/main.go`。
 
 #### 方案三：使用 `UseNumber()` 方法
@@ -468,12 +477,12 @@ d := json.NewDecoder(bytes.NewReader([]byte(jsonStr)))
 d.UseNumber() // 关键：让数字保持原始字符串形态
 err := d.Decode(&result)
 if err != nil {
-	fmt.Println(err)
+fmt.Println(err)
 }
 fmt.Println(result) // map[number:1234567]
 ```
 
-这时**类型变成 `json.Number`**，注意一定要记住这一点：
+这时 **类型变成 `json.Number`**，注意一定要记住这一点：
 
 ```go
 fmt.Println(fmt.Sprintf("type: %v", reflect.TypeOf(result["number"])))
@@ -501,28 +510,31 @@ fmt.Println(fmt.Sprintf("value: %v, type: %v", numStr, reflect.TypeOf(numStr)))
 // 输出：value: 1234567, type: string
 ```
 
-> ⚠️ 用 `UseNumber()` 后，所有数字都是 `json.Number`，**直接参与算术会编译报错**，必须先转 `Int64()` / `Float64()`。这既是它的安全之处，也是它的烦人之处。
+> ⚠️ 用 `UseNumber()` 后，所有数字都是 `json.Number`， **直接参与算术会编译报错**，必须先转 `Int64()` / `Float64()`
+> 。这既是它的安全之处，也是它的烦人之处。
 
 ---
 
 ## 五、三种方案怎么选
 
-| 场景 | 推荐方案 |
-|---|---|
-| **结构明确**（最常见） | 方案二：定义 struct |
-| 结构不明确但字段名稳定，需要访问具体字段 | 情况二：`mapstructure.WeakDecode` |
-| 结构完全不固定，只做透传/存储 | 方案三：`UseNumber()` + 显式转换 |
-| 结构不固定且字段少 | 考虑用 `map[string]interface{}`，但**ID/金额字段要单独处理** |
+| 场景                                     | 推荐方案                                                     |
+|------------------------------------------|--------------------------------------------------------------|
+| **结构明确**（最常见）                   | 方案二：定义 struct                                          |
+| 结构不明确但字段名稳定，需要访问具体字段 | 情况二：`mapstructure.WeakDecode`                            |
+| 结构完全不固定，只做透传/存储            | 方案三：`UseNumber()` + 显式转换                             |
+| 结构不固定且字段少                       | 考虑用 `map[string]interface{}`，但**ID/金额字段要单独处理** |
 
-> **最重要的原则**：**传输层字段（ID、金额、序列号）永远不要用 `map[string]interface{}` 接收。** 这是线上事故的高发点。
+> **最重要的原则**： **传输层字段（ID、金额、序列号）永远不要用 `map[string]interface{}` 接收。** 这是线上事故的高发点。
 
 ## 本篇要点
 
-1. struct 是值类型，**要修改必须传指针**；含 `sync.Mutex` 的 struct 必须用指针接收者。
+1. struct 是值类型， **要修改必须传指针**；含 `sync.Mutex` 的 struct 必须用指针接收者。
 2. 同一类型的接收者风格必须统一（都值或都指针）。
-3. `json` tag 通过**反射**生效，字段名映射、omitempty、`-` 排除都靠它。
-4. 解析策略：**明确用 struct** → **类型不定用 `WeakDecode`** → **字段不定用 `,squash`** → **完全不固定用 `map` + `UseNumber`**。
+3. `json` tag 通过 **反射**生效，字段名映射、omitempty、`-` 排除都靠它。
+4. 解析策略： **明确用 struct** → **类型不定用 `WeakDecode`** → **字段不定用 `,squash`** → **完全不固定用 `map` +
+   `UseNumber`**。
 5. 用 mapstructure 时 tag 写 `mapstructure:"..."`。
-6. **`json.Unmarshal` 到 `interface{}` 时数字一律变 `float64`**。有效位 ≥ 7 位就显示为科学计数法；**整数绝对值超过 2^53（9007199254740992）才真正丢精度**。三种解法：强转 / 定义 struct / `UseNumber()`。
+6. **`json.Unmarshal` 到 `interface{}` 时数字一律变 `float64`**。有效位 ≥ 7 位就显示为科学计数法； **整数绝对值超过
+   2^53（9007199254740992）才真正丢精度**。三种解法：强转 / 定义 struct / `UseNumber()`。
 7. `UseNumber()` 后的数字是 `json.Number`（底层是 string），必须显式转 `Int64()` / `Float64()`。
 8. 字段固定用 struct，字段动态才用 map（性能原因见第 08 篇）。

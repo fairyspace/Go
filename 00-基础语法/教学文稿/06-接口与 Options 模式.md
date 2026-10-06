@@ -1,18 +1,20 @@
 # 06 接口与 Options 模式
 
-> 学完本篇你将能够：用隐式实现定义接口、用编译期断言保证实现完整、用 Options 模式写出可扩展的链式配置 API、看懂 `grpc.Dial` 的源码写法、知道何时不该用 Options 模式。
+> 学完本篇你将能够：用隐式实现定义接口、用编译期断言保证实现完整、用 Options 模式写出可扩展的链式配置 API、看懂 `grpc.Dial`
+> 的源码写法、知道何时不该用 Options 模式。
 
 ## 概述
 
-本篇合并了原「结构体实现接口」和「学习 grpc.Dial 的写法」两篇教程。它们都在讲同一件事：**Go 的代码组织与可扩展性设计**。
+本篇合并了原「结构体实现接口」和「学习 grpc.Dial 的写法」两篇教程。它们都在讲同一件事： **Go 的代码组织与可扩展性设计**。
 
 ---
 
 ## 一、结构体实现接口
 
-在 Go 语言中，**一个 struct 实现了某个接口里的所有方法，就叫做这个 struct 实现了该接口**。
+在 Go 语言中， **一个 struct 实现了某个接口里的所有方法，就叫做这个 struct 实现了该接口**。
 
-下面写一个 Demo 实现一下：先写一个 `Study interface{}`，里面需要实现 4 个方法 Listen、Speak、Read、Write，然后再写一个 `study struct{}`，去全部实现里面的方法，然后分享一下代码心得。
+下面写一个 Demo 实现一下：先写一个 `Study interface{}`，里面需要实现 4 个方法 Listen、Speak、Read、Write，然后再写一个
+`study struct{}`，去全部实现里面的方法，然后分享一下代码心得。
 
 ### 代码示例
 
@@ -38,9 +40,9 @@ type study struct {
 }
 
 func (s *study) Listen(msg string) string { return s.Name + " 听 " + msg }
-func (s *study) Speak(msg string) string { return s.Name + " 说 " + msg }
-func (s *study) Read(msg string) string  { return s.Name + " 读 " + msg }
-func (s *study) Write(msg string) string { return s.Name + " 写 " + msg }
+func (s *study) Speak(msg string) string  { return s.Name + " 说 " + msg }
+func (s *study) Read(msg string) string   { return s.Name + " 读 " + msg }
+func (s *study) Write(msg string) string  { return s.Name + " 写 " + msg }
 
 // New 构造函数：返回接口而非具体类型
 func New(name string) (Study, error) {
@@ -96,7 +98,7 @@ Tom 写 english
 var _ Study = (*study)(nil)
 ```
 
-要求 `*study` 去实现 `Study`，若 `Study` 接口被更改或未全部实现时，**在编译时就会报错**。
+要求 `*study` 去实现 `Study`，若 `Study` 接口被更改或未全部实现时， **在编译时就会报错**。
 
 这是 Go 中标准的接口实现断言写法，`_` 表示丢弃该值，只保留类型检查。
 
@@ -104,7 +106,7 @@ var _ Study = (*study)(nil)
 
 ```go
 type study struct {
-	Name string
+Name string
 }
 ```
 
@@ -114,36 +116,36 @@ type study struct {
 
 ```go
 func New(name string) (Study, error) {
-	if name == "" {
-		return nil, errors.New("name required")
-	}
-	return &study{
-		Name: name,
-	}, nil
+if name == "" {
+return nil, errors.New("name required")
+}
+return &study{
+Name: name,
+}, nil
 }
 ```
 
-在其他地方调用 `New()` 使用 `Study` 包时，**仅对外暴露了 4 个方法**，别人只管调用就好了，内部实现别人无需关心。
+在其他地方调用 `New()` 使用 `Study` 包时， **仅对外暴露了 4 个方法**，别人只管调用就好了，内部实现别人无需关心。
 
-同时构造函数承担了**参数校验**（返回 `error`）与**可能的资源初始化**两个职责——这是 Go 生态中处理「创建可能失败的对象」的标准方式。
+同时构造函数承担了 **参数校验**（返回 `error`）与 **可能的资源初始化**两个职责——这是 Go 生态中处理「创建可能失败的对象」的标准方式。
 
 ### 补充：接口组合
 
-Go 的接口可以像结构体一样**内嵌组合**：
+Go 的接口可以像结构体一样 **内嵌组合**：
 
 ```go
 type Reader interface {
-	Read(p []byte) (n int, err error)
+Read(p []byte) (n int, err error)
 }
 
 type Writer interface {
-	Write(p []byte) (n int, err error)
+Write(p []byte) (n int, err error)
 }
 
 // 组合成新的接口
 type ReadWriter interface {
-	Reader
-	Writer
+Reader
+Writer
 }
 
 // 一个类型可以同时实现多个接口
@@ -168,7 +170,7 @@ sw := s.(interface{ Write(msg string) string })
 // 双返回值：安全
 sw, ok := s.(interface{ Write(msg string) string })
 if ok {
-	sw.Write("english")
+sw.Write("english")
 }
 
 // 类型 switch：更实用
@@ -177,9 +179,9 @@ if ok {
 // 若把更宽的接口放在前面，窄类型 case 会变成永远不可达的死代码（常见 bug）。
 switch v := s.(type) {
 case interface{ Listen(string) string }:
-	fmt.Println(v.Listen("music"))
+fmt.Println(v.Listen("music"))
 case *study: // 不可达：*study 必然命中第一个 case
-	fmt.Println("具体类型:", v.Name)
+fmt.Println("具体类型:", v.Name)
 }
 ```
 
@@ -194,13 +196,14 @@ v = []int{1, 2}
 
 // 断言取出
 if s, ok := v.(string); ok {
-	fmt.Println(s)
+fmt.Println(s)
 }
 ```
 
-> ⚠️ **空接口 `interface{}` 会导致逃逸和性能下降**（见第 08 篇），且丧失编译期类型检查。字段类型确定时**务必用具体类型**。
+> ⚠️ **空接口 `interface{}` 会导致逃逸和性能下降**（见第 08 篇），且丧失编译期类型检查。字段类型确定时 **务必用具体类型**。
 >
-> 这也是为什么 `json.Unmarshal` 到 `map[string]interface{}` 会让所有数字变成 `float64`（第 04 篇）——因为 `interface{}` 只能存这几种基础类型。
+> 这也是为什么 `json.Unmarshal` 到 `map[string]interface{}` 会让所有数字变成 `float64`（第 04 篇）——因为 `interface{}`
+> 只能存这几种基础类型。
 
 ---
 
@@ -211,8 +214,8 @@ if s, ok := v.(string); ok {
 ```go
 // 现代 API（grpc-go 1.63+）
 conn, err := grpc.NewClient("127.0.0.1:8000",
-	grpc.WithTransportCredentials(insecure.NewCredentials()),
-	grpc.WithChainStreamInterceptor(),
+grpc.WithTransportCredentials(insecure.NewCredentials()),
+grpc.WithChainStreamInterceptor(),
 )
 
 // ⚠️ 老项目里常见的两个 API 均已废弃：
@@ -234,11 +237,11 @@ conn, err := grpc.NewClient("127.0.0.1:8000",
 
 ```go
 func Add(a int, args ...int) (result int) {
-	result += a
-	for _, arg := range args {
-		result += arg
-	}
-	return
+result += a
+for _, arg := range args {
+result += arg
+}
+return
 }
 
 fmt.Println(Add(1, 2, 3)) // 6
@@ -251,11 +254,11 @@ fmt.Println(Add(1, 2, 3)) // 6
 ```go
 // 1. 收集到切片
 func sum(nums ...int) int {
-	s := 0
-	for _, n := range nums {
-		s += n
-	}
-	return s
+s := 0
+for _, n := range nums {
+s += n
+}
+return s
 }
 
 // 2. 已有切片用 ... 展开传
@@ -267,13 +270,14 @@ sum(nums...)
 
 // 4. 匿名函数也能接收不定参数
 f := func(prefix string, args ...interface{}) {
-	fmt.Println(prefix, args...)
+fmt.Println(prefix, args...)
 }
 ```
 
 ### 二、With 方法的作用
 
-`WithInsecure()`、`WithBlock()` 类似于这样的 With 方法，其实作用就是**修改 `dialOptions` 结构体的配置**，之所以这样写我个人认为是面向对象的思想，**当配置项调整的时候调用方无需修改**。
+`WithInsecure()`、`WithBlock()` 类似于这样的 With 方法，其实作用就是 **修改 `dialOptions` 结构体的配置**
+，之所以这样写我个人认为是面向对象的思想， **当配置项调整的时候调用方无需修改**。
 
 ### 场景
 
@@ -285,22 +289,24 @@ f := func(prefix string, args ...interface{}) {
 
 ```go
 friends, err := friend.Find("附近的人",
-	friend.WithSex(1),
-	friend.WithAge(30),
-	friend.WithHeight(160),
-	friend.WithWeight(55),
-	friend.WithHobby("爬山"))
+friend.WithSex(1),
+friend.WithAge(30),
+friend.WithHeight(160),
+friend.WithWeight(55),
+friend.WithHobby("爬山"))
 ```
 
 ### 代码实现
 
-> ⚠️ **先指出这个 Demo 的一处反模式（A16）**：下面代码用 `sync.Pool` 池化了一个只有 5 个字段的 `option` 结构体（约 48 字节）。**这是不值得的**：
+> ⚠️ **先指出这个 Demo 的一处反模式（A16）**：下面代码用 `sync.Pool` 池化了一个只有 5 个字段的 `option` 结构体（约 48 字节）。
+> **这是不值得的**：
 >
 > - 分配成本近乎为零，池化省不下什么；
-> - 每次 `WithSex(1)` 仍会为返回的**闭包**分配一次（闭包捕获了参数），这是池化省不掉的；
-> - 净收益接近 0，代价却真实存在：必须维护 `reset()`，**漏一个字段就是脏数据串号**（上一个请求的 hobby 泄漏给下一个请求）。
+> - 每次 `WithSex(1)` 仍会为返回的 **闭包**分配一次（闭包捕获了参数），这是池化省不掉的；
+> - 净收益接近 0，代价却真实存在：必须维护 `reset()`， **漏一个字段就是脏数据串号**（上一个请求的 hobby 泄漏给下一个请求）。
 >
-> 正确做法见本节末尾的「对照实验」。`sync.Pool` 的正确使用场景是**分配代价高的对象**（`bytes.Buffer`、大 `[]byte`、编解码器），详见第 08 篇四。
+> 正确做法见本节末尾的「对照实验」。`sync.Pool` 的正确使用场景是 **分配代价高的对象**（`bytes.Buffer`、大 `[]byte`、编解码器），详见第
+> 08 篇四。
 
 ```go
 // s10_option/friend/option.go
@@ -474,15 +480,15 @@ func main() {
 
 ### 这个 Demo 涉及的知识点汇总
 
-| 知识点 | 出现位置 | 详见 |
-|---|---|---|
-| 不定参数 `...Option` | `Find(where string, options ...Option)` | 本节一 |
-| 函数类型 `type Option func(*option)` | `option.go` | 本节二 |
-| 闭包捕获 option 指针 | `WithSex` 等函数返回的闭包 | 第 05 篇三 |
-| `defer` 归还资源 | `defer releaseOption(opt)` | 第 05 篇四 |
-| `sync.Pool` 对象复用 | `cache.Get()` / `cache.Put()` | 第 08 篇四（**注意：此处属反模式，见 A16 说明**） |
-| 私有结构体 + 构造函数 | `type option struct` / `New` | 本节一 |
-| 面向对象封装 | 只有 `WithXxx` 对外暴露 | 本节一 |
+| 知识点                               | 出现位置                                | 详见                                              |
+|--------------------------------------|-----------------------------------------|---------------------------------------------------|
+| 不定参数 `...Option`                 | `Find(where string, options ...Option)` | 本节一                                            |
+| 函数类型 `type Option func(*option)` | `option.go`                             | 本节二                                            |
+| 闭包捕获 option 指针                 | `WithSex` 等函数返回的闭包              | 第 05 篇三                                        |
+| `defer` 归还资源                     | `defer releaseOption(opt)`              | 第 05 篇四                                        |
+| `sync.Pool` 对象复用                 | `cache.Get()` / `cache.Put()`           | 第 08 篇四（**注意：此处属反模式，见 A16 说明**） |
+| 私有结构体 + 构造函数                | `type option struct` / `New`            | 本节一                                            |
+| 面向对象封装                         | 只有 `WithXxx` 对外暴露                 | 本节一                                            |
 
 > 这一个小 Demo 串起了本教程 40% 的知识点，值得反复读。
 
@@ -490,19 +496,19 @@ func main() {
 
 **适用**：
 
-| 场景 | 说明 |
-|---|---|
-| 配置项多且会持续增加 | 新增选项不破坏已有调用 |
-| 多数配置用默认值 | 只传需要改的，其余走零值 |
-| 未来可能扩展为链式 | `opt.WithX().WithY()` |
+| 场景                 | 说明                     |
+|----------------------|--------------------------|
+| 配置项多且会持续增加 | 新增选项不破坏已有调用   |
+| 多数配置用默认值     | 只传需要改的，其余走零值 |
+| 未来可能扩展为链式   | `opt.WithX().WithY()`    |
 
 **代价**：
 
-- 参数校验被推迟到**运行时**，编译期检查失效
+- 参数校验被推迟到 **运行时**，编译期检查失效
 - 需要维护 `reset()`，否则对象池会残留脏数据
 - 大量选项会让签名很长，可读性下降
 
-> **不要过度设计**：配置项少于 3 个、或必须全部指定时，**直白的结构体参数是更好的选择**：
+> **不要过度设计**：配置项少于 3 个、或必须全部指定时， **直白的结构体参数是更好的选择**：
 > ```go
 > type FindOptions struct {
 > 	Sex    int
@@ -516,15 +522,17 @@ func main() {
 > 	// 参数校验在函数内集中处理，编译器能检查字段名
 > }
 > ```
-> Options 模式的真正价值在于**向后兼容**——项目已发布、调用方遍布多个服务时，才值得为此付出复杂度。
+> Options 模式的真正价值在于 **向后兼容**——项目已发布、调用方遍布多个服务时，才值得为此付出复杂度。
 
 ## 本篇要点
 
-1. Go 接口是**隐式实现**，方法集匹配即实现，不需要写 `implements`。
-2. `var _ I = (*T)(nil)` 做**编译期断言**，接口变更时立刻报错。
+1. Go 接口是 **隐式实现**，方法集匹配即实现，不需要写 `implements`。
+2. `var _ I = (*T)(nil)` 做 **编译期断言**，接口变更时立刻报错。
 3. 结构体定义成私有 + 构造函数返回接口 = 封装，隐藏实现细节。
 4. 接口可以组合（内嵌），一个类型可实现多个接口。
 5. `opts ...Option` + `type Option func(*option)` 就是 **Options 模式**，与 `grpc.NewClient` 同源（原 `grpc.Dial` 已废弃）。
-6. **对照实验（A16 修正）**：三种写法按推荐顺序——① 默认选**结构体参数**（保留编译期检查、无池化负担）；② 需要向后兼容时用 **Options 模式**；③ `sync.Pool` 池化 option 属**反模式**（对象太小，收益趋近 0，却有 `reset()` 脏数据风险），Pool 应留给分配代价高的对象（见第 08 篇四）。
+6. **对照实验（A16 修正）**：三种写法按推荐顺序——① 默认选 **结构体参数**（保留编译期检查、无池化负担）；② 需要向后兼容时用
+   **Options 模式**；③ `sync.Pool` 池化 option 属 **反模式**（对象太小，收益趋近 0，却有 `reset()` 脏数据风险），Pool
+   应留给分配代价高的对象（见第 08 篇四）。
 7. **不要滥用 `interface{}`**，它会触发逃逸并丢失类型安全。
-8. Options 模式有真实代价（失去编译期检查、需维护 reset），**配置项少时用结构体参数更好**。
+8. Options 模式有真实代价（失去编译期检查、需维护 reset）， **配置项少时用结构体参数更好**。

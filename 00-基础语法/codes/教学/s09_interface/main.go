@@ -4,8 +4,9 @@
 package main
 
 import (
-	"demo/s09_interface/study"
 	"fmt"
+
+	"demo/s09_interface/study"
 )
 
 func main() {

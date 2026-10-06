@@ -1,4 +1,4 @@
-//demo_14.go
+// demo_14.go
 package main
 
 import (
@@ -28,7 +28,7 @@ func main() {
 	fmt.Println("p5 :", p5)
 
 	p6 := map[int]string{
-		1 : "Tom",
+		1: "Tom",
 	}
 	fmt.Println("p6 :", p6)
 }

@@ -5,14 +5,14 @@ import (
 	"fmt"
 )
 
-type Result struct {
+type Result1 struct {
 	Code    int    `json:"code"`
 	Message string `json:"msg"`
 }
 
 func main() {
-	var res Result
-	res.Code    = 200
+	var res Result1
+	res.Code = 200
 	res.Message = "success"
 
 	//序列化
@@ -23,7 +23,7 @@ func main() {
 	fmt.Println("json data :", string(jsons))
 
 	//反序列化
-	var res2 Result
+	var res2 Result1
 	errs = json.Unmarshal(jsons, &res2)
 	if errs != nil {
 		fmt.Println("json unmarshal error:", errs)

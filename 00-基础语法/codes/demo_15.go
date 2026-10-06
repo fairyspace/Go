@@ -1,4 +1,4 @@
-//demo_15.go
+// demo_15.go
 package main
 
 import (
@@ -9,11 +9,11 @@ import (
 func main() {
 	res := make(map[string]interface{})
 	res["code"] = 200
-	res["msg"]  = "success"
+	res["msg"] = "success"
 	res["data"] = map[string]interface{}{
-		"username" : "Tom",
-		"age"      : "30",
-		"hobby"    : []string{"读书","爬山"},
+		"username": "Tom",
+		"age":      "30",
+		"hobby":    []string{"读书", "爬山"},
 	}
 	fmt.Println("map data :", res)
 
@@ -28,7 +28,7 @@ func main() {
 
 	//反序列化
 	res2 := make(map[string]interface{})
-	errs = json.Unmarshal([]byte(jsons), &res2)
+	errs = json.Unmarshal(jsons, &res2)
 	if errs != nil {
 		fmt.Println("json marshal error:", errs)
 	}
